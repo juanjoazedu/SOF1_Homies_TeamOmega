@@ -6,12 +6,14 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { AuthContext } from '../../auth/contexts/AuthContext';
 import { userService } from '../services/userService';
 import type { Follow, User } from '../types/user.types';
 
 interface UserContextValue {
   users: User[];
   follows: Follow[];
+  currentUserUid: string | null;
   isLoading: boolean;
   error: string | null;
   followUser: (uid: string) => Promise<void>;
@@ -25,6 +27,9 @@ interface UserProviderProps {
 }
 
 export const UserProvider = ({ children }: UserProviderProps) => {
+  const { authState } = useContext(AuthContext);
+  const currentUserUid =
+    authState.status === 'authenticated' ? authState.sessionUser.uid : null;
   const [users, setUsers] = useState<User[]>([]);
   const [follows, setFollows] = useState<Follow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -36,6 +41,15 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   }, []);
 
   useEffect(() => {
+    if (!currentUserUid) {
+      setUsers([]);
+      setFollows([]);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
+
     const loadUserData = async () => {
       try {
         const [loadedUsers, loadedFollows] = await Promise.all([
@@ -52,12 +66,17 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     };
 
     void loadUserData();
-  }, []);
+  }, [currentUserUid]);
 
   const followUser = async (uid: string) => {
+    if (!currentUserUid) {
+      setError('You must be authenticated to follow a user.');
+      return;
+    }
+
     try {
       setError(null);
-      await userService.followUser('u1', uid);
+      await userService.followUser(currentUserUid, uid);
       await refreshFollows();
     } catch {
       setError('Unable to follow this user.');
@@ -65,9 +84,14 @@ export const UserProvider = ({ children }: UserProviderProps) => {
   };
 
   const unfollowUser = async (uid: string) => {
+    if (!currentUserUid) {
+      setError('You must be authenticated to unfollow a user.');
+      return;
+    }
+
     try {
       setError(null);
-      await userService.unfollowUser('u1', uid);
+      await userService.unfollowUser(currentUserUid, uid);
       await refreshFollows();
     } catch {
       setError('Unable to unfollow this user.');
@@ -79,6 +103,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       value={{
         users,
         follows,
+        currentUserUid,
         isLoading,
         error,
         followUser,

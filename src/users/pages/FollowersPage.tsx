@@ -2,12 +2,11 @@ import { usePagination } from '../../shared/hooks/usePagination';
 import { UserList } from '../components/UserList';
 import { useUsers } from '../contexts/UserContext';
 
-const CURRENT_USER_UID = 'u1';
-
 export const FollowersPage = () => {
   const {
     users,
     follows,
+    currentUserUid,
     isLoading,
     error,
     followUser,
@@ -15,11 +14,11 @@ export const FollowersPage = () => {
   } = useUsers();
 
   const followerUids = follows
-    .filter((follow) => follow.followingUid === CURRENT_USER_UID)
+    .filter((follow) => follow.followingUid === currentUserUid)
     .map((follow) => follow.followerUid);
 
   const followingUids = follows
-    .filter((follow) => follow.followerUid === CURRENT_USER_UID)
+    .filter((follow) => follow.followerUid === currentUserUid)
     .map((follow) => follow.followingUid);
 
   const followerUsers = users.filter((user) =>
