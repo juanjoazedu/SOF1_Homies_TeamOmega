@@ -1,0 +1,23 @@
+:root {
+  --bg-app: #F2F5F9;
+  --bg-surface: #FFFFFF;
+  --bg-elevated: #F1F5F9;
+
+  --border-color: #D1D9E0;
+  --border-strong: #CBD5E1;
+
+  --text-primary: #1E293B;
+  --text-secondary: #64748B;
+  --text-on-color: #FFFFFF;
+  --text-muted: #CBD5E1;
+
+  --action-primary: #1E293B;
+  --action-primary-hover: #0F172A;
+  --action-accept: #2F4BCE;
+  --action-accept-hover: #253CA8;
+  --action-danger: #D93A3F;
+  --action-danger-hover: #B82E32;
+  
+  --accent-warning: #F59E0B;
+  --avatar-bg: #B0C4DE;
+}
