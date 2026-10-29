@@ -1,0 +1,8 @@
+# Statement on the Use of Artificial Intelligence Tools
+
+| Date & Time | Tool & Model | Prompt (Summary) | Response Summary | Files Created/Modified | Shared Link |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 26-10-2026 23:50 | Gemini | Should I create two separate feature branches for followers and following or a single general one (`feature/follow-list`)? | Recommended using a single unified branch (`feature/follow-list`) to avoid merge conflicts and maximize UI component reuse. | N/A (Git branching strategy) | [View Conversation](https://share.gemini.google/XeWNSNqhBhj2) |
+| 27-10-2026 00:35 | Gemini | What is the difference between a standard `localeCompare` and one with `{ sensitivity: 'base' }`? | Explained that `sensitivity: 'base'` ignores case and accents (ideal for frontend search filters), unlike default strict comparisons. | N/A (Utility logic) | [View Conversation](https://share.gemini.google/XeWNSNqhBhj2) |
+| 28-10-2026 02:40 | Gemini | Can React hooks like `useState` and `useEffect` be used inside a custom hook? | Confirmed it is fully supported and provided an example implementing a custom search hook (`useUserSearch`). | `useUserSearch.ts` | [View Conversation](https://share.gemini.google/XeWNSNqhBhj2) |
+| 28-10-2026 03:45 | Gemini | How can I implement a hover effect to change both text color and font weight/family? | Explained the CSS `:hover` pseudo-class mechanism along with `transition` properties for smooth visual changes. | `global.css` | [View Conversation](https://share.gemini.google/XeWNSNqhBhj2) |

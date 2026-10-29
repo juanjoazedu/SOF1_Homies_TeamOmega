@@ -1,73 +1,46 @@
-import { UserList } from '../components/UserList';
+import { useContext } from 'react';
+import { AuthContext } from '../../auth/contexts/AuthContext';
+
+import { useFollowList } from '../hooks/useFollowList';
 import { usePagination } from '../../shared/hooks/usePagination';
-import { useUsers } from '../contexts/UserContext';
+
+import { UserList } from '../components/UserList';
+import { Pagination } from '../../ui/components/Pagination';
 
 export const FollowingPage = () => {
-  const {
-    users,
-    follows,
-    currentUserUid,
-    isLoading,
-    error,
-    followUser,
-    unfollowUser,
-  } = useUsers();
-
-  const followingUids = follows
-    .filter((follow) => follow.followerUid === currentUserUid)
-    .map((follow) => follow.followingUid);
-
-  const followingUsers = users.filter((user) =>
-    followingUids.includes(user.uid)
-  );
+  const { authState } = useContext(AuthContext);
+  const uid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
 
   const {
-    items: currentUsers,
-    currentPage,
-    totalPages,
-    hasNextPage,
-    hasPreviousPage,
-    nextPage,
-    previousPage,
-  } = usePagination(followingUsers);
+    users, followingUids, isLoading, follow, unFollow,
+  } = useFollowList(uid, 'following');
+
+  const pagination = usePagination(users);
 
   return (
     <div className="followers-container">
-      <h3>Following</h3>
-      {error && <p role="alert">{error}</p>}
+      <h3>Followers</h3>
 
       {isLoading ? (
         <p>Loading users...</p>
       ) : (
         <UserList
-          users={currentUsers}
+          users={pagination.items}
           followingUids={followingUids}
-          onFollow={followUser}
-          onUnfollow={unfollowUser}
+          onFollow={follow}
+          onUnfollow={unFollow}
         />
       )}
 
-      <div className="pagination" aria-label="Followers pagination">
-        <button
-          type="button"
-          onClick={previousPage}
-          disabled={!hasPreviousPage}
-        >
-          {"<"}
-        </button>
-
-        <span className="pagination-info">
-          Page {currentPage} of {totalPages}
-        </span>
-
-        <button
-          type="button"
-          onClick={nextPage}
-          disabled={!hasNextPage}
-        >
-          {">"}
-        </button>
-      </div>
+      <Pagination
+        label="Followers pagination"
+        currentPage={pagination.currentPage}
+        totalPages={pagination.totalPages}
+        hasNextPage={pagination.hasNextPage}
+        hasPreviousPage={pagination.hasPreviousPage}
+        onNext={pagination.nextPage}
+        onPrevious={pagination.previousPage}
+      />
     </div>
   );
 };

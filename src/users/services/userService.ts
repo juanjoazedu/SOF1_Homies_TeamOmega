@@ -1,51 +1,55 @@
-import { mockFollows } from '../data/mockFollows';
-import { mockUsers } from '../data/mockUsers';
-import type { Follow, User } from '../types/user.types';
+import { mockFollows } from "../data/mockFollows";
+import { mockUsers } from "../data/mockUsers";
+import type { User } from "../types/user.types";
 
 let follows = [...mockFollows];
 
-export const userService = {
-  async getUsers(): Promise<User[]> {
-    return [...mockUsers].sort((a, b) => 
-        a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' }));
-  },
+const sortByName = (users: User[]) => [...users].sort(
+  (a, b) => a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' }),
+);
 
-  async getFollows(): Promise<Follow[]> {
-    return [...follows];
-  },
+export const getFollowers = (uid: string): User[] => {
+  const followerUids = follows.filter((follow) => follow.followingUid === uid).map((follow) => follow.followerUid);
+  return sortByName(mockUsers.filter((user) => followerUids.includes(user.uid)));
+};
 
-  async followUser(followerUid: string, followingUid: string): Promise<void> {
-    const alreadyFollowing = follows.filter(
-      (follow) =>
+export const getFollowings = (uid: string): User[] => {
+  const followingsUids = follows.filter((follow) => follow.followerUid === uid).map((follow) => follow.followingUid);
+  return sortByName(mockUsers.filter((user) => followingsUids.includes(user.uid)));
+};
+
+export const getFollowingsUids = (uid: string): string[] => {
+  return follows.filter((follow) => follow.followerUid === uid).map((follow) => follow.followingUid);
+};
+
+export const followUser = (followerUid: string, followingUid: string): void => {
+  const alreadyFollowing = follows.filter(
+    (follow) =>
+      follow.followerUid === followerUid &&
+      follow.followingUid === followingUid
+  ).length > 0;
+
+  const userExists = mockUsers.filter(
+    (user) => user.uid === followingUid
+  ).length > 0;
+
+  if (
+    followerUid === followingUid ||
+    alreadyFollowing ||
+    !userExists
+  ) {
+    return;
+  }
+
+  follows = [...follows, { followerUid, followingUid }];
+};
+
+export const unfollowUser = (followerUid: string, followingUid: string): void => {
+  follows = follows.filter(
+    (follow) =>
+      !(
         follow.followerUid === followerUid &&
         follow.followingUid === followingUid
-    ).length > 0;
-
-    const userExists = mockUsers.filter(
-      (user) => user.uid === followingUid
-    ).length > 0;
-
-    if (
-      followerUid === followingUid ||
-      alreadyFollowing ||
-      !userExists
-    ) {
-      return;
-    }
-
-    follows = [...follows, { followerUid, followingUid }];
-  },
-
-  async unfollowUser(
-    followerUid: string,
-    followingUid: string
-  ): Promise<void> {
-    follows = follows.filter(
-      (follow) =>
-        !(
-          follow.followerUid === followerUid &&
-          follow.followingUid === followingUid
-        )
-    );
-  },
+      )
+  );
 };

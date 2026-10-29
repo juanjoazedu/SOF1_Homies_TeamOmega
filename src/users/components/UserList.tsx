@@ -1,5 +1,5 @@
 import type { User } from '../types/user.types';
-import { FollowButton } from './FollowButton';
+import { UserCard } from './UserCard';
 
 interface UserListProps {
   users: User[];
@@ -12,35 +12,16 @@ export const UserList = ({ users, followingUids, onFollow, onUnfollow }: UserLis
   
   return (
     <ul className="user-list">
-      {users.map((user) => {
-        const isFollowing = followingUids.includes(user.uid);
-
-        return (
-          <li key={user.uid}>
-            {user.photoURL ? (
-              <img
-                src={user.photoURL}
-                alt={`Photo of ${user.fullName}`}
-              />
-            ) : (
-              <div aria-label={`Photo of ${user.fullName}`}>
-                Without photo
-              </div>
-            )}
-
-            <div>
-              <h3>{user.fullName}</h3>
-              <p>@{user.username}</p>
-            </div>
-
-            <FollowButton
-              isFollowing={isFollowing}
-              onFollow={() => onFollow(user.uid)}
-              onUnfollow={() => onUnfollow(user.uid)}
-            />
-          </li>
-        );
-      })}
+      {users.map((user) => (
+        <li key={user.uid}>
+          <UserCard
+            user={user}
+            isFollowing={followingUids.includes(user.uid)}
+            onFollow={() => onFollow(user.uid)}
+            onUnfollow={() => onUnfollow(user.uid)}
+          />
+        </li>
+      ))}
     </ul>
   );
 };
