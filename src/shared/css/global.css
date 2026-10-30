@@ -44,25 +44,131 @@ body {
   justify-content: center;
 }
 
+/* Follow counters styles */
+.follow-counters {
+  display: flex;
+  margin: 12px 0;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-primary);
+}
+
+.follow-button-container {
+  position: absolute;
+  top: 130px;
+  right: 20px;
+}
+
+.follow-counters a {
+  color: var(--text-primary);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.follow-counters a strong {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+.follow-counters a:hover {
+  text-decoration: underline;
+}
+
+.follow-counters div {
+  display: flex;
+  gap: 18px;
+}
+
+/* Profile styles */
+.profile-container {
+  width: min(100%, 600px);
+  min-height: 100vh;
+  margin: 0 auto;
+  background-color: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  color: var(--text-primary);
+}
+
+.profile-header {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 20px 8px;
+}
+
+.profile-header > div:first-child {
+  min-width: 0;
+  padding-top: 132px;
+}
+
+.profile-header img {
+  position: absolute;
+  top: 24px;
+  left: 20px;
+  width: 104px;
+  height: 104px;
+  border: 3px solid var(--border-strong);
+  border-radius: 50%;
+  background-color: var(--avatar-bg);
+  object-fit: cover;
+}
+
+.profile-header h2 {
+  margin-bottom: 2px;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.profile-header p {
+  margin: 4px 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.profile-header p:nth-of-type(2) {
+  margin-top: 16px;
+  color: var(--text-primary);
+  white-space: pre-wrap;
+}
+
+.profile-header p:nth-of-type(n + 3) {
+  display: inline-block;
+  color: var(--text-secondary);
+  font-size: 13px;
+  margin-bottom: 0;
+  margin-right: 15px;
+}
+
+.profile-container .follow-counters {
+  margin-top: 4px;
+  padding: 0 20px;
+}
+
+.profile-container .follow-counters a {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
 
 /* Users list styles */
 .followers-container {
-  width: 100%;
-  max-width: 680px; 
+  width: min(100%, 600px);
+  min-height: 100vh;
+  margin: 0 auto;
+  background-color: var(--bg-surface);
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  height: fit-content;
 }
 
-.follow-counters {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 16px;
-  background-color: var(--bg-surface);
-  border-radius: 10px;
+.followers-container h3 {
+  margin: 10px 20px;
 }
+
 .user-list {
   list-style: none;
   padding: 0;
@@ -88,7 +194,7 @@ body {
 /* User card styles */
 .user-card {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 20px;
 }
 
@@ -146,6 +252,8 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  min-width: 100px;
+  text-align: center;
 }
 
 .follow-button:hover {
@@ -159,7 +267,7 @@ body {
 .follow-button--following {
   background-color: transparent;
   color: var(--action-primary-hover);
-  border-color: var(--border-color); 
+  border-color: var(--border-color);
 }
 
 .follow-button--following:hover {
