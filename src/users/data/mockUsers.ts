@@ -14,6 +14,15 @@ export const mockUsers: User[] = [
     fullName: 'Diego Ramirez',
     username: 'diego_ramirez',
     email: 'diego.ramirez@example.com',
+    photoURL: "https://i.pravatar.cc/150?img=12",
     dateOfBirth: '1996-09-22',
+  },
+  {
+    uid: 'u3',
+    fullName: 'Sofia Martinez',
+    username: 'sofia_martinez',
+    email: 'sofia.martinez@example.com',
+    photoURL: "https://i.pravatar.cc/150?img=5",
+    dateOfBirth: '2000-01-10',
   },
 ];

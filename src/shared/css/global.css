@@ -17,7 +17,194 @@
   --action-accept-hover: #253CA8;
   --action-danger: #D93A3F;
   --action-danger-hover: #B82E32;
-  
+
+  --button-danger-hover-border: #f4212e1a;
+  --button-danger-hover: #f4212e66;
+
   --accent-warning: #F59E0B;
   --avatar-bg: #B0C4DE;
+
+  --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-family);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Users list styles */
+.followers-container {
+  width: 100%;
+  max-width: 680px; 
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: fit-content;
+}
+
+.follow-counters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background-color: var(--bg-surface);
+  border-radius: 10px;
+}
+.user-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+}
+
+.user-list li {
+  padding: 12px 16px;
+  transition: background-color 0.2s ease;
+}
+
+.user-list li:hover {
+  background-color: var(--bg-elevated);
+}
+
+/* User card styles */
+.user-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.user-list img {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.user-card > div {
+  min-width: 0;
+  flex: 1;
+}
+
+.user-list h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.user-list p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.user-card > div[aria-label] {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background-color: var(--avatar-bg);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+/* Follow button styles */
+.follow-button {
+  margin-left: 20px;
+  flex-shrink: 0;
+  background-color: var(--bg-surface);
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 6px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.follow-button:hover {
+  background-color: var(--bg-elevated);
+}
+
+.follow-button:active {
+  background-color: var(--bg-app);
+}
+
+.follow-button--following {
+  background-color: transparent;
+  color: var(--action-primary-hover);
+  border-color: var(--border-color); 
+}
+
+.follow-button--following:hover {
+  background-color: var(--button-danger-hover-border);
+  border-color: var(--button-danger-hover);
+  color: var(--action-danger);
+}
+
+.follow-button--danger {
+  background-color: var(--action-danger-hover);
+  border-color: var(--action-danger-hover);
+  color: var(--action-danger);
+}
+
+/* Pagination styles */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 5px;
+}
+
+.pagination button {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 3px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pagination button:hover {
+  background-color: var(--bg-elevated);
+}
+
+.pagination button:disabled {
+  background-color: var(--bg-app);
+  border-color: var(--border-color);
+  color: var(--text-secondary);
+}
+
+.pagination-info {
+  font-size: 14px;
+  color: var(--text-secondary);
 }
