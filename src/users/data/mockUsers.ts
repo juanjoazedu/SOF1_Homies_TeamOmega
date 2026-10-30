@@ -9,6 +9,7 @@ export const mockUsers: User[] = [
     dateOfBirth: '1998-04-15',
     photoURL: 'https://i.pravatar.cc/150?img=47',
     bio: 'Software engineer and tech enthusiast. Love to explore new technologies and share knowledge.',
+    dateOfRegistration: '2023-01-10',
   },
   {
     uid: 'u2',
@@ -18,6 +19,7 @@ export const mockUsers: User[] = [
     photoURL: "https://i.pravatar.cc/150?img=12",
     dateOfBirth: '1996-09-22',
     bio: 'Passionate about web development and open-source projects. Always eager to learn and grow.',
+    dateOfRegistration: '2023-02-05',
   },
   {
     uid: 'u3',
@@ -27,5 +29,6 @@ export const mockUsers: User[] = [
     photoURL: "https://i.pravatar.cc/150?img=5",
     dateOfBirth: '2000-01-10',
     bio: 'Digital nomad and travel blogger. Sharing my adventures and experiences around the world.',
+    dateOfRegistration: '2023-03-15',
   },
 ];

@@ -8,6 +8,7 @@ export interface User {
   dateOfBirth: IsoDate;
   photoURL?: string;
   bio?: string;
+  dateOfRegistration: IsoDate;
 }
 
 export interface Follow {

@@ -3,7 +3,8 @@ import { useParams } from 'react-router-dom';
 
 import { AuthContext } from '../../auth/contexts/AuthContext';
 import { usePagination } from '../../shared/hooks/usePagination';
-import { TweetList } from '../../tweets/components/TweetList';
+import { formatMonthYear } from '../../shared/utils/formatDate';
+//import { TweetList } from '../../tweets/components/TweetList';
 import { Pagination } from '../../ui/components/Pagination';
 import { FollowButton } from '../components/FollowButton';
 import { FollowCounters } from '../components/FollowCounters';
@@ -36,8 +37,10 @@ export const UserProfilePage = () => {
         <div>
           <img src={profileUser.photoURL} alt={`Profile photo of ${profileUser.fullName}`} />
           <h2>{profileUser.fullName}</h2>
-          <p>{profileUser.bio}</p>
           <p>@{profileUser.username}</p>
+          <p>{profileUser.bio}</p>
+          <p>Born on {formatMonthYear(profileUser.dateOfBirth)}</p>
+          <p>Joined {formatMonthYear(profileUser.dateOfRegistration)}</p>
         </div>
 
         {!isOwnProfile && (

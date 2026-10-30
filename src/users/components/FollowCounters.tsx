@@ -14,8 +14,14 @@ export const FollowCounters = ({
   
   return (
     <nav className="follow-counters">
-      <Link to={`/u/${profileUserName}/following`}> {followingCount} Following </Link>
-      <Link to={`/u/${profileUserName}/followers`}> {followersCount} Followers</Link>
+      <div>
+        <Link to={`/u/${profileUserName}/following`}>
+          <strong>{followingCount}</strong> Following
+        </Link>
+        <Link to={`/u/${profileUserName}/followers`}>
+          <strong>{followersCount}</strong> Followers
+        </Link> 
+      </div>
     </nav>
   );
 };

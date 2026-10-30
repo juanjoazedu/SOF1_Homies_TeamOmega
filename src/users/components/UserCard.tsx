@@ -31,4 +31,4 @@ export const UserCard = ({ user, isFollowing, onFollow, onUnfollow }: UserCardPr
       </article>
     </>
   );
-}
+};
