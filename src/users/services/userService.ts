@@ -8,6 +8,11 @@ const sortByName = (users: User[]) => [...users].sort(
   (a, b) => a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' }),
 );
 
+
+export const getUserByUid = (uid: string): User | null => {
+  return mockUsers.find((user) => user.uid === uid) || null;
+};
+
 export const getFollowers = (uid: string): User[] => {
   const followerUids = follows.filter((follow) => follow.followingUid === uid).map((follow) => follow.followerUid);
   return sortByName(mockUsers.filter((user) => followerUids.includes(user.uid)));
