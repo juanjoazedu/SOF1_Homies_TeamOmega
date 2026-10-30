@@ -3,6 +3,7 @@ import { mockUsers } from "../data/mockUsers";
 import type { User } from "../types/user.types";
 
 let follows = [...mockFollows];
+let users = [...mockUsers];
 
 const sortByName = (users: User[]) => [...users].sort(
   (a, b) => a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' }),
@@ -53,3 +54,7 @@ export const unfollowUser = (followerUid: string, followingUid: string): void =>
       )
   );
 };
+
+export const getUserByUsername = (username: string): User | null => {
+  return users.find((user) => user.username === username) || null;
+}

@@ -10,8 +10,20 @@ const instantFormatter = new Intl.DateTimeFormat('es-CO', {
   timeStyle: 'short',
 });
 
+const monthYearFormatter = new Intl.DateTimeFormat('en-US', {
+  month: 'long',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
 export const formatDate = (value: IsoDate | Date): string => (
   typeof value === 'string'
     ? calendarFormatter.format(new Date(value))
     : instantFormatter.format(value)
+);
+
+export const formatMonthYear = (value: IsoDate | Date): string => (
+  monthYearFormatter.format(
+    typeof value === 'string' ? new Date(value) : value,
+  )
 );
