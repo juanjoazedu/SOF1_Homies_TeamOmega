@@ -1,14 +1,19 @@
-import { useContext } from 'react';
+import { useCallback, useContext } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { AuthContext } from '../../auth/contexts/AuthContext';
 import { usePagination } from '../../shared/hooks/usePagination';
 import { formatMonthYear } from '../../shared/utils/formatDate';
-//import { TweetList } from '../../tweets/components/TweetList';
+import { TweetList } from '../../tweets/components/TweetList';
+import { useTweetList } from '../../tweets/hooks/useTweetList';
+import { getTweetsByUid } from '../../tweets/services/tweetService';
 import { Pagination } from '../../ui/components/Pagination';
 import { FollowButton } from '../components/FollowButton';
 import { FollowCounters } from '../components/FollowCounters';
 import { useUserProfile } from '../hooks/useUserProfile';
+
+import calendar from '../../assets/calendar.svg';
+import born from '../../assets/born.svg';
 
 export const UserProfilePage = () => {
   const { username = '' } = useParams();
@@ -16,9 +21,15 @@ export const UserProfilePage = () => {
   const myUid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
 
   const {
-    profileUser, followersCount, followingCount, isFollowing, tweets, isLoading, follow, unfollow,
+    profileUser, followersCount, followingCount, isFollowing, isLoading, follow, unfollow,
   } = useUserProfile(username, myUid);
 
+  const profileUid = profileUser?.uid;
+  const loadProfileTweets = useCallback(
+    () => (profileUid ? getTweetsByUid(profileUid, myUid) : []),
+    [profileUid, myUid],
+  );
+  const { tweets, like, retweet } = useTweetList(loadProfileTweets, myUid);
   const pagination = usePagination(tweets);
 
   if (isLoading) {
@@ -39,18 +50,23 @@ export const UserProfilePage = () => {
           <h2>{profileUser.fullName}</h2>
           <p>@{profileUser.username}</p>
           <p>{profileUser.bio}</p>
-          <p>Born on {formatMonthYear(profileUser.dateOfBirth)}</p>
-          <p>Joined {formatMonthYear(profileUser.dateOfRegistration)}</p>
+          <p>
+            <img className="svg-icon" src={born} alt="calendar" />
+            Born on {formatMonthYear(profileUser.dateOfBirth)}
+          </p>
+          <p>
+            <img className="svg-icon" src={calendar} alt="calendar" />
+            Joined {formatMonthYear(profileUser.dateOfRegistration)}
+          </p>
         </div>
 
         {!isOwnProfile && (
           <div className="follow-button-container">
-            <FollowButton 
+            <FollowButton
               isFollowing={isFollowing}
               onFollow={follow}
               onUnfollow={unfollow}
             />
-
           </div>
         )}
       </header>
@@ -61,17 +77,24 @@ export const UserProfilePage = () => {
         followersCount={followersCount}
       />
 
-      {/* <TweetList tweets={pagination.items} /> */}
-
-      <Pagination
-        label="Tweets pagination"
-        currentPage={pagination.currentPage}
-        totalPages={pagination.totalPages}
-        hasNextPage={pagination.hasNextPage}
-        hasPreviousPage={pagination.hasPreviousPage}
-        onNext={pagination.nextPage}
-        onPrevious={pagination.previousPage}
+      <TweetList
+        tweets={pagination.items}
+        onLike={like}
+        onRetweet={retweet}
+        emptyMessage={`@${profileUser.username} hasn't tweeted yet.`}
       />
+
+      {tweets.length > 0 && (
+        <Pagination
+          label="Tweets pagination"
+          currentPage={pagination.currentPage}
+          totalPages={pagination.totalPages}
+          hasNextPage={pagination.hasNextPage}
+          hasPreviousPage={pagination.hasPreviousPage}
+          onNext={pagination.nextPage}
+          onPrevious={pagination.previousPage}
+        />
+      )}
     </div>
   );
 };
