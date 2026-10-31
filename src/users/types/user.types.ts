@@ -7,9 +7,11 @@ export interface User {
   email: string;
   dateOfBirth: IsoDate;
   photoURL?: string;
+  bio?: string;
+  dateOfRegistration: IsoDate;
 }
 
 export interface Follow {
-  followerUid: string;
   followingUid: string;
+  followerUid: string;
 }

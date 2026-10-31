@@ -55,8 +55,8 @@ body {
 
 .follow-button-container {
   position: absolute;
-  top: 130px;
-  right: 20px;
+  top: 130px; 
+  right: 20px; 
 }
 
 .follow-counters a {
@@ -252,7 +252,7 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 100px;
+  min-width: 100px; 
   text-align: center;
 }
 
