@@ -152,6 +152,33 @@ body {
   font-family: var(--font-family);
   font-size: 16px;
   font-weight: 700;
+/* Page header styles */
+.page-header {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  min-height: 53px;
+  padding: 0 16px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border-color);
+  background-color: rgb(255 255 255 / 85%);
+  backdrop-filter: blur(12px);
+}
+
+.page-header__back {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -161,6 +188,11 @@ body {
 }
 
 .auth-form button:focus-visible {
+.page-header__back:hover {
+  background-color: var(--bg-elevated);
+}
+
+.page-header__back:focus-visible {
   outline: 2px solid var(--action-accept);
   outline-offset: 2px;
 }
@@ -237,6 +269,28 @@ body {
 .auth-container__provider:focus-visible {
   outline: 2px solid var(--action-accept);
   outline-offset: 2px;
+.page-header__back img {
+  width: 32px;
+  height: 32px;
+}
+
+.page-header__title {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.page-status {
+  margin: 0;
+  padding: 32px 20px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  text-align: center;
 }
 
 /* Follow counters styles */
@@ -610,13 +664,6 @@ body {
 }
 
 /* New tweet page styles */
-.new-tweet-container h2 {
-  padding: 16px 20px;
-  font-size: 20px;
-  font-weight: 700;
-  border-bottom: 1px solid var(--border-color);
-}
-
 .new-tweet-container p[role="status"],
 .new-tweet-container p[role="alert"] {
   margin: 0 20px 16px;
