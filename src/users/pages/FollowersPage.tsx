@@ -1,34 +1,52 @@
 import { useContext } from 'react';
+import { useParams } from 'react-router-dom';
+
 import { AuthContext } from '../../auth/contexts/AuthContext';
-
-import { useFollowList } from '../hooks/useFollowList';
 import { usePagination } from '../../shared/hooks/usePagination';
-
-import { UserList } from '../components/UserList';
 import { Pagination } from '../../ui/components/Pagination';
+import { FollowsHeader } from '../components/FollowsHeader';
+import { UserList } from '../components/UserList';
+import { useFollowList } from '../hooks/useFollowList';
+import { useUserProfile } from '../hooks/useUserProfile';
 
 export const FollowersPage = () => {
+  const { username = '' } = useParams();
   const { authState } = useContext(AuthContext);
-  const uid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
+  const myUid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
+
+  const { profileUser, isLoading: isProfileLoading } = useUserProfile(username, myUid);
 
   const {
-    users, followingUids, isLoading, follow, unFollow,
-  } = useFollowList(uid, 'followers');
+    users,
+    followingUids,
+    isLoading: isListLoading,
+    follow,
+    unfollow,
+  } = useFollowList(profileUser?.uid ?? '', myUid, 'followers');
 
   const pagination = usePagination(users);
 
+  if (isProfileLoading) {
+    return <p>Loading profile...</p>;
+  }
+
+  if (!profileUser) {
+    return <p>User not found.</p>;
+  }
+
   return (
     <div className="followers-container">
-      <h3>Followers</h3>
+      <FollowsHeader fullName={profileUser.fullName} username={profileUser.username} />
 
-      {isLoading ? (
+      {isListLoading ? (
         <p>Loading users...</p>
       ) : (
         <UserList
           users={pagination.items}
+          myUid={myUid}
           followingUids={followingUids}
           onFollow={follow}
-          onUnfollow={unFollow}
+          onUnfollow={unfollow}
         />
       )}
 

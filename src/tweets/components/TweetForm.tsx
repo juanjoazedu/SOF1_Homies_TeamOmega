@@ -41,7 +41,7 @@ export const TweetForm = ({ onSubmit }: TweetFormProps) => {
         </span>
 
         <button type="submit" disabled={isDisabled}>
-          Publicar
+          Post
         </button>
       </div>
     </form>

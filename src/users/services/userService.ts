@@ -11,7 +11,7 @@ const sortByName = (users: User[]) => [...users].sort(
 
 
 export const getUserByUid = (uid: string): User | null => {
-  return mockUsers.find((user) => user.uid === uid) || null;
+  return users.find((user) => user.uid === uid) || null;
 };
 
 export const getFollowers = (uid: string): User[] => {

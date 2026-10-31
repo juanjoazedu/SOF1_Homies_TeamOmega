@@ -26,6 +26,11 @@
 
   --font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
+  /* Layout */
+  --content-width: 600px;
+  --sidebar-width: 275px;
+  --bottom-bar-height: 0px;
+
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -39,9 +44,34 @@ body {
   color: var(--text-primary);
   font-family: var(--font-family);
   min-height: 100vh;
-  display: flex;
-  align-items: center;
+  margin: 0;
+}
+
+#root {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) min(100%, var(--content-width)) var(--sidebar-width);
   justify-content: center;
+  min-height: 100vh;
+}
+
+#root > * {
+  grid-column: 2;
+}
+
+.feed-container,
+.profile-container,
+.followers-container,
+.new-tweet-container,
+.tweet-detail-container {
+  width: 100%;
+  min-height: 100vh;
+  padding-bottom: var(--bottom-bar-height);
+  box-sizing: border-box;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  display: flex;
+  flex-direction: column;
 }
 
 /* Follow counters styles */
@@ -55,8 +85,8 @@ body {
 
 .follow-button-container {
   position: absolute;
-  top: 130px; 
-  right: 20px; 
+  top: 130px;
+  right: 20px;
 }
 
 .follow-counters a {
@@ -81,12 +111,6 @@ body {
 
 /* Profile styles */
 .profile-container {
-  width: min(100%, 600px);
-  min-height: 100vh;
-  margin: 0 auto;
-  background-color: var(--bg-surface);
-  display: flex;
-  flex-direction: column;
   align-items: stretch;
   color: var(--text-primary);
 }
@@ -104,7 +128,7 @@ body {
   padding-top: 132px;
 }
 
-.profile-header img {
+.profile-header > div:first-child > img {
   position: absolute;
   top: 24px;
   left: 20px;
@@ -114,6 +138,13 @@ body {
   border-radius: 50%;
   background-color: var(--avatar-bg);
   object-fit: cover;
+}
+
+.svg-icon {
+  width: 15px;
+  height: 15px;
+  margin-right: 4px;
+  vertical-align: -2px;
 }
 
 .profile-header h2 {
@@ -156,15 +187,6 @@ body {
 }
 
 /* Users list styles */
-.followers-container {
-  width: min(100%, 600px);
-  min-height: 100vh;
-  margin: 0 auto;
-  background-color: var(--bg-surface);
-  display: flex;
-  flex-direction: column;
-}
-
 .followers-container h3 {
   margin: 10px 20px;
 }
@@ -176,9 +198,7 @@ body {
   background-color: var(--bg-surface);
   color: var(--text-primary);
   font-family: var(--font-family);
-  max-width: 600px;
   width: 100%;
-  margin: 0 auto;
   overflow: hidden;
 }
 
@@ -224,8 +244,7 @@ body {
   color: var(--text-secondary);
 }
 
-.user-card > div[aria-label] {
-  flex: none;
+.user-card__avatar {
   width: 48px;
   height: 48px;
   border-radius: 50%;
@@ -236,7 +255,32 @@ body {
   justify-content: center;
   font-size: 10px;
   text-align: center;
+}
+
+.user-card__avatar-link {
+  display: block;
   flex-shrink: 0;
+  border-radius: 50%;
+  transition: opacity 0.2s ease;
+}
+
+.user-card__avatar-link:hover {
+  opacity: 0.85;
+}
+
+.user-card__avatar-link:focus-visible,
+.user-card__info a:focus-visible {
+  outline: 2px solid var(--action-accept);
+  outline-offset: 2px;
+}
+
+.user-card__info a {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.user-card__info a:hover {
+  text-decoration: underline;
 }
 
 /* Follow button styles */
@@ -252,7 +296,7 @@ body {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  min-width: 100px; 
+  min-width: 100px;
   text-align: center;
 }
 
@@ -280,6 +324,89 @@ body {
   background-color: var(--action-danger-hover);
   border-color: var(--action-danger-hover);
   color: var(--action-danger);
+}
+
+/* header follows style */
+.follows-header {
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+}
+
+.follows-header__top {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px 16px;
+}
+
+.follows-header__back {
+  font-size: 18px;
+  color: var(--text-primary);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.follows-header__back:hover {
+  background-color: var(--bg-elevated);
+}
+
+.follows-header__top h2 {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.follows-header__top p {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* tabs */
+.follows-tabs {
+  display: flex;
+  border-top: 1px solid var(--border-color);
+}
+
+.follows-tab {
+  flex: 1;
+  text-align: center;
+  padding: 15px 0;
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 15px;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.follows-tab:hover {
+  background-color: var(--bg-elevated);
+}
+
+.follows-tab.active {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* blue indicator line for the active tab */
+.follows-tab.active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 4px;
+  background-color: var(--action-accept);
+  border-radius: 2px;
 }
 
 /* Pagination styles */
@@ -318,16 +445,6 @@ body {
 }
 
 /* New tweet page styles */
-.new-tweet-container,
-.tweet-detail-container {
-  width: min(100%, 600px);
-  min-height: 100vh;
-  margin: 0 auto;
-  background-color: var(--bg-surface);
-  display: flex;
-  flex-direction: column;
-}
-
 .new-tweet-container h2 {
   padding: 16px 20px;
   font-size: 20px;
@@ -572,4 +689,327 @@ body {
 
 .tweet-card__actions button:nth-child(2)[aria-pressed="true"] {
   color: var(--action-accept);
+}
+
+/* Tweet list styles */
+.tweet-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tweet-list__empty {
+  margin: 0;
+  padding: 32px 20px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  text-align: center;
+}
+
+/* Feed styles */
+.feed-container .pagination {
+  margin: 12px 0 20px;
+}
+
+/* Feed tabs styles */
+.feed-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+}
+
+.feed-tabs__tab {
+  flex: 1;
+  position: relative;
+  padding: 16px 0;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.feed-tabs__tab:hover {
+  background-color: var(--bg-elevated);
+}
+
+.feed-tabs__tab:focus-visible {
+  outline: 2px solid var(--action-accept);
+  outline-offset: -2px;
+}
+
+.feed-tabs__tab--active {
+  color: var(--text-primary);
+  font-weight: 700;
+}
+
+/* blue indicator line for the active tab */
+.feed-tabs__tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 56px;
+  height: 4px;
+  background-color: var(--action-accept);
+  border-radius: 2px;
+}
+
+/* App header (sidebar) styles*/
+.app-header {
+  position: fixed;
+  top: 0;
+  left: max(0px, calc(50% - var(--content-width) / 2 - var(--sidebar-width)));
+  width: var(--sidebar-width);
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 8px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-app);
+  font-family: var(--font-family);
+  z-index: 10;
+}
+
+.app-header__logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  margin-bottom: 4px;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.app-header__logo:hover {
+  background-color: var(--bg-elevated);
+}
+
+.app-header__logo img,
+.app-header__logo svg {
+  width: 32px;
+  height: 32px;
+}
+
+.app-header__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.app-header__link {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: fit-content;
+  padding: 12px 16px;
+  border-radius: 999px;
+  color: var(--text-primary);
+  font-size: 20px;
+  text-decoration: none;
+  transition: background-color 0.2s ease;
+}
+
+.app-header__link:hover {
+  background-color: var(--bg-elevated);
+}
+
+.app-header__link:focus-visible,
+.app-header__logo:focus-visible,
+.app-header__post:focus-visible,
+.app-header__logout:focus-visible {
+  outline: 2px solid var(--action-accept);
+  outline-offset: 2px;
+}
+
+.app-header__link--active {
+  font-weight: 700;
+}
+
+.app-header__icon {
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.app-header__post {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 90%;
+  margin-top: 16px;
+  padding: 14px 0;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--action-primary);
+  color: var(--text-on-color);
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.app-header__post:hover {
+  background-color: var(--action-primary-hover);
+}
+
+.app-header__post-icon {
+  display: none;
+  width: 24px;
+  height: 24px;
+}
+
+.app-header__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: auto;
+  padding: 12px;
+  border-radius: 999px;
+  transition: background-color 0.2s ease;
+}
+
+.app-header__user:hover {
+  background-color: var(--bg-elevated);
+}
+
+.app-header__avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--avatar-bg);
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.app-header__user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.app-header__user-name {
+  overflow: hidden;
+  color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-header__user-handle {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-header__logout {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background-color: transparent;
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.app-header__logout:hover {
+  border-color: var(--button-danger-hover);
+  background-color: var(--button-danger-hover-border);
+  color: var(--action-danger);
+}
+
+/* Medium screens: icon-only sidebar */
+@media (max-width: 1000px) {
+  :root {
+    --sidebar-width: 88px;
+  }
+
+  .app-header {
+    align-items: center;
+  }
+
+  .app-header__link {
+    padding: 12px;
+  }
+
+  .app-header__label,
+  .app-header__user-info,
+  .app-header__post-label {
+    display: none;
+  }
+
+  .app-header__post {
+    width: 52px;
+    height: 52px;
+    padding: 0;
+  }
+
+  .app-header__post-icon {
+    display: block;
+  }
+
+  .app-header__user {
+    flex-direction: column;
+    gap: 8px;
+    padding: 8px;
+  }
+}
+
+/* Small screens: sidebar becomes a bottom bar */
+@media (max-width: 700px) {
+  :root {
+    --sidebar-width: 0px;
+    --bottom-bar-height: 64px;
+  }
+
+  .feed-container,
+  .profile-container,
+  .followers-container,
+  .new-tweet-container,
+  .tweet-detail-container {
+    border-left: none;
+    border-right: none;
+  }
+
+  .app-header {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: var(--bottom-bar-height);
+    padding: 0 8px;
+    flex-direction: row;
+    justify-content: space-around;
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-surface);
+  }
+
+  .app-header__logo,
+  .app-header__post,
+  .app-header__user {
+    display: none;
+  }
+
+  .app-header__nav {
+    flex-direction: row;
+    justify-content: space-around;
+    width: 100%;
+  }
 }
