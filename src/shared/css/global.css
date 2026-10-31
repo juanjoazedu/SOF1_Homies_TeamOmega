@@ -48,14 +48,26 @@ body {
 }
 
 #root {
+  min-height: 100vh;
+}
+
+.app-layout {
   display: grid;
-  grid-template-columns: var(--sidebar-width) min(100%, var(--content-width)) var(--sidebar-width);
+  grid-template-columns: var(--sidebar-width) minmax(0, var(--content-width));
   justify-content: center;
   min-height: 100vh;
 }
 
-#root > * {
-  grid-column: 2;
+.app-content {
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.app-content::-webkit-scrollbar {
+  display: none;
 }
 
 .feed-container,
@@ -74,6 +86,72 @@ body {
   flex-direction: column;
 }
 
+/* Auth pages styles */
+.auth-container {
+  width: min(100%, 440px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 32px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+}
+
+.auth-container h2 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 400;
+  transition: border-color 0.2s ease;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--action-accept);
+}
+
+.auth-form button {
+  margin-top: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--action-primary);
+  color: var(--text-on-color);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 700;
 /* Page header styles */
 .page-header {
   position: sticky;
@@ -105,6 +183,11 @@ body {
   transition: background-color 0.2s ease;
 }
 
+.auth-form button:hover {
+  background-color: var(--action-primary-hover);
+}
+
+.auth-form button:focus-visible {
 .page-header__back:hover {
   background-color: var(--bg-elevated);
 }
@@ -114,6 +197,78 @@ body {
   outline-offset: 2px;
 }
 
+.auth-container p[role="alert"] {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: var(--button-danger-hover-border);
+  color: var(--action-danger);
+  font-size: 14px;
+}
+
+.auth-container__switch {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-container__switch a {
+  color: var(--action-accept);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-container__switch a:hover {
+  text-decoration: underline;
+}
+
+.auth-container p[role="status"] {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.auth-container__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.auth-container__divider::before,
+.auth-container__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--border-color);
+}
+
+.auth-container__provider {
+  padding: 12px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.auth-container__provider:hover {
+  background-color: var(--bg-elevated);
+}
+
+.auth-container__provider:focus-visible {
+  outline: 2px solid var(--action-accept);
+  outline-offset: 2px;
 .page-header__back img {
   width: 32px;
   height: 32px;
@@ -479,7 +634,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-top: 5px;
+  margin: 20px 0;
 }
 
 .pagination button {
@@ -835,6 +990,13 @@ body {
   z-index: 10;
 }
 
+.app-layout > .app-header {
+  position: sticky;
+  left: auto;
+  grid-column: 1;
+  grid-row: 1;
+}
+
 .app-header__logo {
   display: flex;
   align-items: center;
@@ -891,6 +1053,18 @@ body {
   font-weight: 700;
 }
 
+/* Logout button */
+.app-header__link--logout {
+  background-color: transparent;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.app-header__link--logout:hover {
+  color: var(--action-danger);
+}
+
 .app-header__icon {
   width: 26px;
   height: 26px;
@@ -902,7 +1076,7 @@ body {
   align-items: center;
   justify-content: center;
   width: 90%;
-  margin-top: 16px;
+  margin-top: auto;
   padding: 14px 0;
   border: none;
   border-radius: 999px;
@@ -929,14 +1103,48 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: auto;
+  margin-top: 12px;
   padding: 12px;
   border-radius: 999px;
+  cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .app-header__user:hover {
-  background-color: var(--bg-elevated);
+  background-color: rgba(15, 23, 42, 0.1);
+}
+
+/* profile card content inside the sidebar */
+.app-header__user .user-card {
+  width: 100%;
+  min-width: 0;
+  gap: 12px;
+}
+
+.app-header__user img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.app-header__user h3,
+.app-header__user p {
+  margin: 0;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-header__user h3 {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.app-header__user p {
+  color: var(--text-secondary);
 }
 
 .app-header__avatar {
@@ -1040,7 +1248,8 @@ body {
   .profile-container,
   .followers-container,
   .new-tweet-container,
-  .tweet-detail-container {
+  .tweet-detail-container,
+  .auth-container {
     border-left: none;
     border-right: none;
   }
@@ -1056,6 +1265,18 @@ body {
     justify-content: space-around;
     border-top: 1px solid var(--border-color);
     background-color: var(--bg-surface);
+  }
+
+  .app-layout > .app-header {
+    position: fixed;
+  }
+
+  .app-layout {
+    display: block;
+  }
+
+  .app-content {
+    height: calc(100vh - var(--bottom-bar-height));
   }
 
   .app-header__logo,
