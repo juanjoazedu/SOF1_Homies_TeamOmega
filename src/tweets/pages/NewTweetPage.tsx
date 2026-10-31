@@ -1,6 +1,7 @@
 import { useContext } from 'react';
 
 import { AuthContext } from '../../auth/contexts/AuthContext';
+import { PageHeader } from '../../ui/components/PageHeader';
 import { TweetForm } from '../components/TweetForm';
 import { useCreateTweet } from '../hooks/useCreateTweet';
 
@@ -17,7 +18,7 @@ export const NewTweetPage = () => {
 
   return (
     <div className="new-tweet-container">
-      <h2>New tweet</h2>
+      <PageHeader />
 
       <TweetForm key={publishedCount} onSubmit={publish} />
 

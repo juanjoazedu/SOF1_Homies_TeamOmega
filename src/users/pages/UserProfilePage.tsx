@@ -8,6 +8,7 @@ import { TweetList } from '../../tweets/components/TweetList';
 import { useTweetList } from '../../tweets/hooks/useTweetList';
 import { getTweetsByUid } from '../../tweets/services/tweetService';
 import { Pagination } from '../../ui/components/Pagination';
+import { PageHeader } from '../../ui/components/PageHeader';
 import { FollowButton } from '../components/FollowButton';
 import { FollowCounters } from '../components/FollowCounters';
 import { useUserProfile } from '../hooks/useUserProfile';
@@ -33,17 +34,28 @@ export const UserProfilePage = () => {
   const pagination = usePagination(tweets);
 
   if (isLoading) {
-    return <p>Loading profile...</p>;
+    return (
+      <div className="profile-container">
+        <PageHeader title="Profile" backTo='/'/>
+        <p className="page-status">Loading profile...</p>
+      </div>
+    );
   }
 
   if (!profileUser) {
-    return <p>User not found.</p>;
+    return (
+      <div className="profile-container">
+        <PageHeader title="Profile" backTo='/'/>
+        <p className="page-status">User not found.</p>
+      </div>
+    );
   }
 
   const isOwnProfile = profileUser.uid === myUid;
 
   return (
     <div className="profile-container">
+      <PageHeader title={profileUser.fullName} backTo='/' />
       <header className="profile-header">
         <div>
           <img src={profileUser.photoURL} alt={`Profile photo of ${profileUser.fullName}`} />
