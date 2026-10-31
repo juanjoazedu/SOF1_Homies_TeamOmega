@@ -48,14 +48,27 @@ body {
 }
 
 #root {
+  min-height: 100vh;
+}
+
+.app-layout {
   display: grid;
-  grid-template-columns: var(--sidebar-width) min(100%, var(--content-width)) var(--sidebar-width);
+  grid-template-columns: var(--sidebar-width) minmax(0, var(--content-width));
   justify-content: center;
   min-height: 100vh;
 }
 
-#root > * {
-  grid-column: 2;
+.app-content {
+  min-width: 0;
+  height: 100vh;
+  overflow-y: auto;
+  /* hide the scrollbar but keep scrolling working */
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* old Edge/IE */
+}
+
+.app-content::-webkit-scrollbar {
+  display: none;                /* Chrome, Edge, Safari */
 }
 
 .feed-container,
@@ -415,7 +428,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-top: 5px;
+  margin: 20px 0;
 }
 
 .pagination button {
@@ -778,6 +791,13 @@ body {
   z-index: 10;
 }
 
+.app-layout > .app-header {
+  position: sticky;
+  left: auto;
+  grid-column: 1;
+  grid-row: 1;
+}
+
 .app-header__logo {
   display: flex;
   align-items: center;
@@ -845,7 +865,7 @@ body {
   align-items: center;
   justify-content: center;
   width: 90%;
-  margin-top: 16px;
+  margin-top: auto;
   padding: 14px 0;
   border: none;
   border-radius: 999px;
@@ -872,14 +892,48 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-top: auto;
+  margin-top: 12px;
   padding: 12px;
   border-radius: 999px;
+  cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .app-header__user:hover {
-  background-color: var(--bg-elevated);
+  background-color: rgba(15, 23, 42, 0.1);
+}
+
+/* profile card content inside the sidebar */
+.app-header__user .user-card {
+  width: 100%;
+  min-width: 0;
+  gap: 12px;
+}
+
+.app-header__user img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.app-header__user h3,
+.app-header__user p {
+  margin: 0;
+  font-size: 15px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.app-header__user h3 {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.app-header__user p {
+  color: var(--text-secondary);
 }
 
 .app-header__avatar {
@@ -999,6 +1053,18 @@ body {
     justify-content: space-around;
     border-top: 1px solid var(--border-color);
     background-color: var(--bg-surface);
+  }
+
+  .app-layout > .app-header {
+    position: fixed;
+  }
+
+  .app-layout {
+    display: block;
+  }
+
+  .app-content {
+    height: calc(100vh - var(--bottom-bar-height));
   }
 
   .app-header__logo,

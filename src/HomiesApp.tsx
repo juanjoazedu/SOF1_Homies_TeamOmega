@@ -1,7 +1,7 @@
-import { AppRouter } from "./routes/AppRouter"
+import { AppLayout } from "./ui/components/Layout";
 
 export const HomiesApp = () => {
   return (
-      <AppRouter />
-  )
+      <AppLayout/>
+  );
 };
