@@ -16,12 +16,12 @@ export const getUserByUid = (uid: string): User | null => {
 
 export const getFollowers = (uid: string): User[] => {
   const followerUids = follows.filter((follow) => follow.followingUid === uid).map((follow) => follow.followerUid);
-  return sortByName(mockUsers.filter((user) => followerUids.includes(user.uid)));
+  return sortByName(users.filter((user) => followerUids.includes(user.uid)));
 };
 
 export const getFollowings = (uid: string): User[] => {
   const followingsUids = follows.filter((follow) => follow.followerUid === uid).map((follow) => follow.followingUid);
-  return sortByName(mockUsers.filter((user) => followingsUids.includes(user.uid)));
+  return sortByName(users.filter((user) => followingsUids.includes(user.uid)));
 };
 
 export const getFollowingsUids = (uid: string): string[] => {
@@ -35,7 +35,7 @@ export const followUser = (followerUid: string, followingUid: string): void => {
       follow.followingUid === followingUid
   ).length > 0;
 
-  const userExists = mockUsers.filter(
+  const userExists = users.filter(
     (user) => user.uid === followingUid
   ).length > 0;
 
@@ -62,4 +62,13 @@ export const unfollowUser = (followerUid: string, followingUid: string): void =>
 
 export const getUserByUsername = (username: string): User | null => {
   return users.find((user) => user.username === username) || null;
-}
+};
+
+export const getUserByEmail = (email: string): User | null => {
+  const normalizedEmail = email.trim().toLowerCase();
+  return users.find((user) => user.email === normalizedEmail) || null;
+};
+
+export const addUser = (user: User): void => {
+  users = [...users, user];
+};
