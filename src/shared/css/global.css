@@ -62,13 +62,12 @@ body {
   min-width: 0;
   height: 100vh;
   overflow-y: auto;
-  /* hide the scrollbar but keep scrolling working */
-  scrollbar-width: none;        /* Firefox */
-  -ms-overflow-style: none;     /* old Edge/IE */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 
 .app-content::-webkit-scrollbar {
-  display: none;                /* Chrome, Edge, Safari */
+  display: none;
 }
 
 .feed-container,
@@ -85,6 +84,159 @@ body {
   background-color: var(--bg-surface);
   display: flex;
   flex-direction: column;
+}
+
+/* Auth pages styles */
+.auth-container {
+  width: min(100%, 440px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 32px 24px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 20px;
+  border-left: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+}
+
+.auth-container h2 {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-form input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 400;
+  transition: border-color 0.2s ease;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: var(--action-accept);
+}
+
+.auth-form button {
+  margin-top: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--action-primary);
+  color: var(--text-on-color);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.auth-form button:hover {
+  background-color: var(--action-primary-hover);
+}
+
+.auth-form button:focus-visible {
+  outline: 2px solid var(--action-accept);
+  outline-offset: 2px;
+}
+
+.auth-container p[role="alert"] {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: var(--button-danger-hover-border);
+  color: var(--action-danger);
+  font-size: 14px;
+}
+
+.auth-container__switch {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+  text-align: center;
+}
+
+.auth-container__switch a {
+  color: var(--action-accept);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-container__switch a:hover {
+  text-decoration: underline;
+}
+
+.auth-container p[role="status"] {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: var(--bg-elevated);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.auth-container__divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.auth-container__divider::before,
+.auth-container__divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background-color: var(--border-color);
+}
+
+.auth-container__provider {
+  padding: 12px 20px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.auth-container__provider:hover {
+  background-color: var(--bg-elevated);
+}
+
+.auth-container__provider:focus-visible {
+  outline: 2px solid var(--action-accept);
+  outline-offset: 2px;
 }
 
 /* Follow counters styles */
@@ -854,6 +1006,18 @@ body {
   font-weight: 700;
 }
 
+/* Logout button */
+.app-header__link--logout {
+  background-color: transparent;
+  color: var(--text-primary);
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.app-header__link--logout:hover {
+  color: var(--action-danger);
+}
+
 .app-header__icon {
   width: 26px;
   height: 26px;
@@ -1037,7 +1201,8 @@ body {
   .profile-container,
   .followers-container,
   .new-tweet-container,
-  .tweet-detail-container {
+  .tweet-detail-container,
+  .auth-container {
     border-left: none;
     border-right: none;
   }

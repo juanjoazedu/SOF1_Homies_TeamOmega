@@ -7,7 +7,7 @@ import homiesLogoMark from "../../assets/homies-logo-mark.svg";
 import { Link } from "react-router-dom";
 
 export const Header = () => {
-  const { authState } = useContext(AuthContext);
+  const { authState, logout } = useContext(AuthContext);
   const myUid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
   const username = authState.status === 'authenticated' ? authState.sessionUser.username : '';
   
@@ -37,6 +37,10 @@ export const Header = () => {
         </Link>
         <Link className="app-header__link" to={`/u/${profileUser.username}`}>
           <span className="app-header__label">Profile</span>
+        </Link>
+
+        <Link className="app-header__link app-header__link--logout" to="/" onClick={logout}>
+          Logout
         </Link>
       </nav>
 
