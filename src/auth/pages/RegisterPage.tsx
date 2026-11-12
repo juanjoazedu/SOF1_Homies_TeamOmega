@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { AuthContext } from '../contexts/AuthContext';
 import { RegisterForm } from '../components/RegisterForm';
 import type { RegisterData } from '../types/auth.types';
+import homiesLogoMark from '../../assets/homies-logo-mark.svg';
 
 export const RegisterPage = () => {
   const { register } = useContext(AuthContext);
@@ -19,6 +20,7 @@ export const RegisterPage = () => {
 
   return (
     <div className="auth-container">
+      <img src={homiesLogoMark} alt="Homies Logo" />
       <h2>Create your account</h2>
 
       <RegisterForm onSubmit={handleRegister} />

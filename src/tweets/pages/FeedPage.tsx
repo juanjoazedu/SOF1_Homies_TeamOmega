@@ -12,7 +12,7 @@ export const FeedPage = () => {
   const { authState } = useContext(AuthContext);
   const uid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
 
-  const [activeTab, setActiveTab] = useState<FeedTab>('following');
+  const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
 
   const loadFeed = useCallback(
     () => (activeTab === 'for-you' ? getTweetsForYou(uid) : getFollowingTweets(uid)),

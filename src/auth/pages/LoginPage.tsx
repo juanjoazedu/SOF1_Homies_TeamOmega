@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { AuthContext } from '../contexts/AuthContext';
 import { LoginForm } from '../components/LoginForm';
+import homiesLogoMark from '../../assets/homies-logo-mark.svg';
 
 export const LoginPage = () => {
   const { login } = useContext(AuthContext);
@@ -25,6 +26,7 @@ export const LoginPage = () => {
 
   return (
     <div className="auth-container">
+      <img src={homiesLogoMark} alt="Homies Logo" />
       <h2>Log in to Homies</h2>
 
       <LoginForm onSubmit={handleLogin} />
