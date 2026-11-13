@@ -5,6 +5,7 @@ import { MIN_PASSWORD_LENGTH } from '../services/authService';
 import type { RegisterData } from '../types/auth.types';
 
 interface RegisterFormProps {
+  isSubmitting: boolean;
   onSubmit: (data: RegisterData) => void;
 }
 
@@ -18,7 +19,7 @@ const initialForm = {
 
 type FormField = keyof typeof initialForm;
 
-export const RegisterForm = ({ onSubmit }: RegisterFormProps) => {
+export const RegisterForm = ({ isSubmitting, onSubmit }: RegisterFormProps) => {
   const [form, setForm] = useState(initialForm);
 
   const handleChange = (field: FormField, value: string) => {
@@ -93,7 +94,9 @@ export const RegisterForm = ({ onSubmit }: RegisterFormProps) => {
         />
       </label>
 
-      <button type="submit">Create account</button>
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Creating account...' : 'Create account'}
+      </button>
     </form>
   );
 };

@@ -1,10 +1,11 @@
 import { useState } from 'react';
 
 interface LoginFormProps {
+  isSubmitting: boolean;
   onSubmit: (username: string, password: string) => void;
 }
 
-export const LoginForm = ({ onSubmit }: LoginFormProps) => {
+export const LoginForm = ({ isSubmitting, onSubmit }: LoginFormProps) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -39,7 +40,9 @@ export const LoginForm = ({ onSubmit }: LoginFormProps) => {
         />
       </label>
 
-      <button type="submit">Log in</button>
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Logging in...' : 'Log in'}
+      </button>
     </form>
   );
 };

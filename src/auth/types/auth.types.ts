@@ -31,7 +31,8 @@ export type AuthAction =
 
 export interface AuthContextValue {
   authState: AuthState;
-  login: (username: string, password: string) => boolean;
-  register: (data: RegisterData) => void;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
 }
