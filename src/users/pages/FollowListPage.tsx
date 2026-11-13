@@ -6,52 +6,49 @@ import { usePagination } from '../../shared/hooks/usePagination';
 import { Pagination } from '../../ui/components/Pagination';
 import { FollowsHeader } from '../components/FollowsHeader';
 import { UserList } from '../components/UserList';
-import { useFollowList } from '../hooks/useFollowList';
+import { UsersContext } from '../contexts/UsersContext';
 import { useUserProfile } from '../hooks/useUserProfile';
 
-export const FollowersPage = () => {
+interface FollowListPageProps {
+  type: 'followers' | 'following';
+}
+
+export const FollowListPage = ({ type }: FollowListPageProps) => {
   const { username = '' } = useParams();
   const { authState } = useContext(AuthContext);
   const myUid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
-
-  const { profileUser, isLoading: isProfileLoading } = useUserProfile(username, myUid);
+  const { followingUids, follow, unfollow } = useContext(UsersContext);
 
   const {
-    users,
-    followingUids,
-    isLoading: isListLoading,
-    follow,
-    unfollow,
-  } = useFollowList(profileUser?.uid ?? '', myUid, 'followers');
+    profileUser,
+    followers,
+    following,
+    isLoading,
+  } = useUserProfile(username);
+  const pagination = usePagination(type === 'followers' ? followers : following);
 
-  const pagination = usePagination(users);
-
-  if (isProfileLoading) {
-    return <p>Loading profile...</p>;
-  }
-
-  if (!profileUser) {
-    return <p>User not found.</p>;
+  if (isLoading || !profileUser) {
+    return (
+      <div className="followers-container">
+        <p className="page-status">{isLoading ? 'Loading profile...' : 'User not found.'}</p>
+      </div>
+    );
   }
 
   return (
     <div className="followers-container">
       <FollowsHeader fullName={profileUser.fullName} username={profileUser.username} />
 
-      {isListLoading ? (
-        <p>Loading users...</p>
-      ) : (
-        <UserList
-          users={pagination.items}
-          myUid={myUid}
-          followingUids={followingUids}
-          onFollow={follow}
-          onUnfollow={unfollow}
-        />
-      )}
+      <UserList
+        users={pagination.items}
+        myUid={myUid}
+        followingUids={followingUids}
+        onFollow={follow}
+        onUnfollow={unfollow}
+      />
 
       <Pagination
-        label="Followers pagination"
+        label={type === 'followers' ? 'Followers pagination' : 'Following pagination'}
         currentPage={pagination.currentPage}
         totalPages={pagination.totalPages}
         hasNextPage={pagination.hasNextPage}
