@@ -3,6 +3,7 @@ import { useContext } from 'react';
 import { AuthContext } from '../../auth/contexts/AuthContext';
 import { AppRouter } from '../../routes/AppRouter';
 import { UsersProvider } from '../../users/contexts/UsersProvider';
+import { TweetsProvider } from '../../tweets/contexts/TweetsProvider';
 import { Header } from './Header';
 
 export const AppLayout = () => {
@@ -18,12 +19,14 @@ export const AppLayout = () => {
 
   return (
     <UsersProvider key={authState.sessionUser.uid}>
-      <div className="app-layout">
-        <Header />
-        <main className="app-content">
-          <AppRouter />
-        </main>
-      </div>
+      <TweetsProvider>
+        <div className="app-layout">
+          <Header />
+          <main className="app-content">
+            <AppRouter />
+          </main>
+        </div>
+      </TweetsProvider>
     </UsersProvider>
   );
 };

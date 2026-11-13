@@ -1,3 +1,5 @@
+import type { Timestamp } from 'firebase/firestore';
+
 export type MediaType = 'image' | 'video';
 
 export interface TweetMedia {
@@ -17,6 +19,7 @@ export interface Tweet {
   likesCount: number;
   retweetsCount: number;
   createdAt: Date;
+  isEdited?: boolean;
 }
 
 export interface TweetView extends Tweet {
@@ -31,4 +34,16 @@ export interface TweetInteraction {
   uid: string;
   tweetId: string;
   type: InteractionType;
+}
+
+export type TweetDocument = Omit<Tweet, 'id' | 'createdAt'> & { createdAt: Timestamp };
+
+export interface TweetsContextValue {
+  likedTweetIds: string[];
+  retweetedTweetIds: string[];
+  publish: (contentText: string, media?: TweetMedia[]) => Promise<void>;
+  toggleLike: (tweetId: string) => Promise<void>;
+  toggleRetweet: (tweetId: string) => Promise<void>;
+  editTweet: (tweetId: string, contentText: string) => Promise<void>;
+  removeTweet: (tweetId: string) => Promise<void>;
 }

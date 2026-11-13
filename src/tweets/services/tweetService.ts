@@ -1,127 +1,188 @@
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  increment,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+  where,
+  writeBatch,
+  type QueryDocumentSnapshot,
+  type Unsubscribe,
+} from 'firebase/firestore';
+
+import { FirebaseDB } from '../../shared/firebase/firebaseConfig';
 import type { UserSummary } from '../../users/types/user.types';
-import { mockTweets } from '../data/mockTweet';
 import type {
   InteractionType,
   Tweet,
+  TweetDocument,
   TweetInteraction,
   TweetMedia,
-  TweetView,
 } from '../types/tweet.types';
 
-const MAX_TWEET_LENGTH = 280;
+export const MAX_TWEET_LENGTH = 280;
+
+const MAX_FEED_TWEETS = 100;
+const FIRESTORE_IN_LIMIT = 30;
 
 type CounterField = 'likesCount' | 'retweetsCount';
+type TweetsListener = (tweets: Tweet[]) => void;
 
-let tweets: Tweet[] = [...mockTweets];
-let interactions: TweetInteraction[] = [];
+const COUNTER_FIELDS: Record<InteractionType, CounterField> = {
+  like: 'likesCount',
+  retweet: 'retweetsCount',
+};
 
-const findTweet = (tweetId: string): Tweet | undefined => (
-  tweets.find((tweet) => tweet.id === tweetId)
-);
+const tweetsCollection = collection(FirebaseDB, 'tweets');
+const interactionsCollection = collection(FirebaseDB, 'tweetInteractions');
 
-const interactionId = (uid: string, tweetId: string, type: InteractionType): string => (
+const getInteractionId = (uid: string, tweetId: string, type: InteractionType): string => (
   `${uid}_${tweetId}_${type}`
 );
 
-const hasInteraction = (uid: string, tweetId: string, type: InteractionType): boolean => {
-  const id = interactionId(uid, tweetId, type);
-  return interactions.find((item) => item.id === id) !== undefined;
+const toTweet = (snapshot: QueryDocumentSnapshot): Tweet => {
+  const data = snapshot.data({ serverTimestamps: 'estimate' }) as TweetDocument;
+  return { ...data, id: snapshot.id, createdAt: data.createdAt.toDate() };
 };
 
 const sortByNewest = (list: Tweet[]): Tweet[] => [...list].sort(
   (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
 );
 
-const toView = (tweet: Tweet, uid: string): TweetView => ({
-  ...tweet,
-  isLiked: hasInteraction(uid, tweet.id, 'like'),
-  isRetweeted: hasInteraction(uid, tweet.id, 'retweet'),
-});
-
-const toggleInteraction = (uid: string, tweetId: string, type: InteractionType): boolean => {
-  const id = interactionId(uid, tweetId, type);
-
-  if (hasInteraction(uid, tweetId, type)) {
-    interactions = interactions.filter((item) => item.id !== id);
-    return false;
+const chunk = <T>(items: T[], size: number): T[][] => {
+  const chunks: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    chunks.push(items.slice(index, index + size));
   }
-
-  interactions = [...interactions, {
-    id,
-    uid,
-    tweetId,
-    type,
-  }];
-  return true;
+  return chunks;
 };
 
-const changeCount = (tweetId: string, field: CounterField, amount: number): void => {
-  tweets = tweets.map((tweet) => (tweet.id === tweetId ? { ...tweet, [field]: tweet[field] + amount } : tweet));
-};
-
-const generateTweetId = (): string => crypto.randomUUID();
-
-export const getTweetsForYou = (uid: string): TweetView[] => (
-  sortByNewest(tweets).map((tweet) => toView(tweet, uid))
+export const subscribeToAllTweets = (onChange: TweetsListener): Unsubscribe => onSnapshot(
+  query(tweetsCollection, orderBy('createdAt', 'desc'), limit(MAX_FEED_TWEETS)),
+  (snapshot) => onChange(snapshot.docs.map(toTweet)),
+  () => onChange([]),
 );
 
-export const getFollowingTweets = (uid: string, followingUids: string[]): TweetView[] => {
-  const authorUids = [uid, ...followingUids];
-  const feedTweets = tweets.filter((tweet) => authorUids.includes(tweet.authorUid));
-  return sortByNewest(feedTweets).map((tweet) => toView(tweet, uid));
+export const subscribeToUserTweets = (
+  authorUid: string,
+  onChange: TweetsListener,
+): Unsubscribe => onSnapshot(
+  query(tweetsCollection, where('authorUid', '==', authorUid)),
+  (snapshot) => onChange(sortByNewest(snapshot.docs.map(toTweet))),
+  () => onChange([]),
+);
+
+export const subscribeToAuthorsTweets = (
+  authorUids: string[],
+  onChange: TweetsListener,
+): Unsubscribe => {
+  const groups = chunk(authorUids, FIRESTORE_IN_LIMIT);
+  const results: Tweet[][] = groups.map(() => []);
+
+  const emit = () => onChange(sortByNewest(results.flat()));
+
+  const unsubscribers = groups.map((group, index) => onSnapshot(
+    query(tweetsCollection, where('authorUid', 'in', group)),
+    (snapshot) => {
+      results[index] = snapshot.docs.map(toTweet);
+      emit();
+    },
+    () => {
+      results[index] = [];
+      emit();
+    },
+  ));
+
+  return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
 };
 
-export const getTweetsByUid = (authorUid: string, viewerUid: string): TweetView[] => {
-  const userTweets = tweets.filter((tweet) => tweet.authorUid === authorUid);
-  return sortByNewest(userTweets).map((tweet) => toView(tweet, viewerUid));
-};
+export const subscribeToTweet = (
+  tweetId: string,
+  onChange: (tweet: Tweet | null) => void,
+): Unsubscribe => onSnapshot(
+  doc(tweetsCollection, tweetId),
+  (snapshot) => onChange(snapshot.exists() ? toTweet(snapshot) : null),
+  () => onChange(null),
+);
 
-export const getTweetById = (tweetId: string, uid: string): TweetView | null => {
-  const tweet = findTweet(tweetId);
-  return tweet ? toView(tweet, uid) : null;
-};
+export const subscribeToInteractions = (
+  uid: string,
+  onChange: (interactions: TweetInteraction[]) => void,
+): Unsubscribe => onSnapshot(
+  query(interactionsCollection, where('uid', '==', uid)),
+  (snapshot) => onChange(snapshot.docs.map((item) => item.data() as TweetInteraction)),
+  () => onChange([]),
+);
 
-export const createTweet = (author: UserSummary | null, contentText: string, media?: TweetMedia[]): Tweet => {
+const validateContent = (contentText: string): string => {
   const text = contentText.trim();
   if (!text) throw new Error('Tweet cannot be empty');
   if (text.length > MAX_TWEET_LENGTH) throw new Error('Tweet cannot exceed 280 characters');
+  return text;
+};
+
+export const createTweet = async (
+  author: UserSummary | null,
+  contentText: string,
+  media?: TweetMedia[],
+): Promise<void> => {
+  const text = validateContent(contentText);
   if (!author) throw new Error('Author not found');
 
-  const newTweet: Tweet = {
-    id: generateTweetId(),
+  await addDoc(tweetsCollection, {
     authorUid: author.uid,
     authorFullName: author.fullName,
     authorUsername: author.username,
-    authorPhotoURL: author.photoURL,
     contentText: text,
-    media,
     likesCount: 0,
     retweetsCount: 0,
-    createdAt: new Date(),
-  };
-
-  tweets = [newTweet, ...tweets];
-  return newTweet;
+    createdAt: serverTimestamp(),
+    ...(author.photoURL ? { authorPhotoURL: author.photoURL } : {}),
+    ...(media?.length ? { media } : {}),
+  });
 };
 
-export const deleteTweet = (tweetId: string, uid: string): void => {
-  const tweet = findTweet(tweetId);
-  if (!tweet || tweet.authorUid !== uid) return;
+export const setInteraction = async (
+  uid: string,
+  tweetId: string,
+  type: InteractionType,
+  isActive: boolean,
+): Promise<void> => {
+  const batch = writeBatch(FirebaseDB);
+  const interactionRef = doc(interactionsCollection, getInteractionId(uid, tweetId, type));
 
-  tweets = tweets.filter((item) => item.id !== tweetId);
-  interactions = interactions.filter((item) => item.tweetId !== tweetId);
+  if (isActive) {
+    const interaction: TweetInteraction = {
+      id: interactionRef.id,
+      uid,
+      tweetId,
+      type,
+    };
+    batch.set(interactionRef, interaction);
+  } else {
+    batch.delete(interactionRef);
+  }
+
+  batch.update(doc(tweetsCollection, tweetId), {
+    [COUNTER_FIELDS[type]]: increment(isActive ? 1 : -1),
+  });
+
+  await batch.commit();
 };
 
-export const toggleLike = (uid: string, tweetId: string): void => {
-  if (!findTweet(tweetId)) return;
-
-  const added = toggleInteraction(uid, tweetId, 'like');
-  changeCount(tweetId, 'likesCount', added ? 1 : -1);
+export const updateTweet = async (tweetId: string, contentText: string): Promise<void> => {
+  await updateDoc(doc(tweetsCollection, tweetId), {
+    contentText: validateContent(contentText),
+    isEdited: true,
+  });
 };
 
-export const toggleRetweet = (uid: string, tweetId: string): void => {
-  if (!findTweet(tweetId)) return;
-
-  const added = toggleInteraction(uid, tweetId, 'retweet');
-  changeCount(tweetId, 'retweetsCount', added ? 1 : -1);
+export const deleteTweet = async (tweetId: string): Promise<void> => {
+  await deleteDoc(doc(tweetsCollection, tweetId));
 };

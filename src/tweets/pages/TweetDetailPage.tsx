@@ -1,22 +1,18 @@
-import { useContext } from 'react';
 import { useParams } from 'react-router-dom';
 
-import { AuthContext } from '../../auth/contexts/AuthContext';
 import { PageHeader } from '../../ui/components/PageHeader';
 import { TweetCard } from '../components/TweetCard';
-import { useTweet } from '../hooks/useTweet';
+import { useTweetDetail } from '../hooks/useTweetDetail';
 
 export const TweetDetailPage = () => {
   const { tweetId = '' } = useParams();
-  const { authState } = useContext(AuthContext);
-  const uid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
 
   const {
     tweet,
     isLoading,
     like,
     retweet,
-  } = useTweet(tweetId, uid);
+  } = useTweetDetail(tweetId);
 
   if (isLoading) {
     return (

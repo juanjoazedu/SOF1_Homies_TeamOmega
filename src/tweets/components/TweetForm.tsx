@@ -1,17 +1,31 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 
 const MAX_TWEET_LENGTH = 280;
 
 interface TweetFormProps {
   onSubmit: (text: string) => void;
+  isSubmitting?: boolean;
+  initialText?: string;
+  submitLabel?: string;
+  submittingLabel?: string;
+  onCancel?: () => void;
 }
 
-export const TweetForm = ({ onSubmit }: TweetFormProps) => {
-  const [text, setText] = useState('');
+export const TweetForm = ({
+  onSubmit,
+  isSubmitting = false,
+  initialText = '',
+  submitLabel = 'Post',
+  submittingLabel = 'Posting...',
+  onCancel,
+}: TweetFormProps) => {
+  const textId = useId();
+  const [text, setText] = useState(initialText);
 
-  const trimmedLength = text.trim().length;
+  const trimmedText = text.trim();
   const isTooLong = text.length > MAX_TWEET_LENGTH;
-  const isDisabled = trimmedLength === 0 || isTooLong;
+  const isUnchanged = trimmedText === initialText.trim();
+  const isDisabled = trimmedText.length === 0 || isTooLong || isUnchanged || isSubmitting;
 
   const counterClass = isTooLong
     ? 'tweet-form__counter tweet-form__counter--error'
@@ -26,9 +40,9 @@ export const TweetForm = ({ onSubmit }: TweetFormProps) => {
         onSubmit(text);
       }}
     >
-      <label htmlFor="tweet-text">What is happening?</label>
+      <label htmlFor={textId}>What is happening?</label>
       <textarea
-        id="tweet-text"
+        id={textId}
         value={text}
         onChange={(event) => setText(event.target.value)}
         rows={4}
@@ -40,8 +54,19 @@ export const TweetForm = ({ onSubmit }: TweetFormProps) => {
           {text.length}/{MAX_TWEET_LENGTH}
         </span>
 
+        {onCancel && (
+          <button
+            type="button"
+            className="tweet-form__cancel"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+        )}
+
         <button type="submit" disabled={isDisabled}>
-          Post
+          {isSubmitting ? submittingLabel : submitLabel}
         </button>
       </div>
     </form>

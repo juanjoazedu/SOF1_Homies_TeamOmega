@@ -1,8 +1,16 @@
-import type { KeyboardEvent, MouseEvent } from 'react';
+import {
+  useContext,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+import { AuthContext } from '../../auth/contexts/AuthContext';
 import { formatDate } from '../../shared/utils/formatDate';
+import { TweetsContext } from '../contexts/TweetsContext';
 import type { TweetView } from '../types/tweet.types';
+import { TweetForm } from './TweetForm';
 
 interface TweetCardProps {
   tweet: TweetView;
@@ -13,6 +21,18 @@ interface TweetCardProps {
 
 export const TweetCard = ({ tweet, onLike, onRetweet, isClickable = true }: TweetCardProps) => {
   const navigate = useNavigate();
+  const { authState } = useContext(AuthContext);
+  const { editTweet, removeTweet } = useContext(TweetsContext);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const isOwner = authState.status === 'authenticated'
+    && authState.sessionUser.uid === tweet.authorUid;
+
   const profileUrl = `/u/${tweet.authorUsername}`;
   const tweetUrl = `${profileUrl}/tweet/${tweet.id}`;
 
@@ -32,6 +52,51 @@ export const TweetCard = ({ tweet, onLike, onRetweet, isClickable = true }: Twee
   ) => {
     event.stopPropagation();
     action(tweet.id);
+  };
+
+  const handleStartEdit = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setErrorMessage('');
+    setIsEditing(true);
+  };
+
+  const handleEdit = async (text: string) => {
+    setIsSaving(true);
+
+    try {
+      await editTweet(tweet.id, text);
+      setErrorMessage('');
+      setIsEditing(false);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Could not edit the tweet.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleAskDelete = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setErrorMessage('');
+    setIsConfirmingDelete(true);
+  };
+
+  const handleCancelDelete = (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsConfirmingDelete(false);
+  };
+
+  const handleConfirmDelete = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation();
+    setIsDeleting(true);
+
+    try {
+      await removeTweet(tweet.id);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Could not delete the tweet.');
+      setIsConfirmingDelete(false);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const cardClass = isClickable ? 'tweet-card tweet-card--clickable' : 'tweet-card';
@@ -79,9 +144,23 @@ export const TweetCard = ({ tweet, onLike, onRetweet, isClickable = true }: Twee
           <time dateTime={tweet.createdAt.toISOString()}>
             {formatDate(tweet.createdAt)}
           </time>
+          {tweet.isEdited && ' (edited)'}
         </p>
 
-        <p className="tweet-card__content">{tweet.contentText}</p>
+        {isEditing ? (
+          <div onClick={(event) => event.stopPropagation()}>
+            <TweetForm
+              initialText={tweet.contentText}
+              submitLabel="Save"
+              submittingLabel="Saving..."
+              isSubmitting={isSaving}
+              onSubmit={handleEdit}
+              onCancel={() => setIsEditing(false)}
+            />
+          </div>
+        ) : (
+          <p className="tweet-card__content">{tweet.contentText}</p>
+        )}
 
         {tweet.media && (
           <div className="tweet-card__media">
@@ -116,7 +195,45 @@ export const TweetCard = ({ tweet, onLike, onRetweet, isClickable = true }: Twee
           >
             {tweet.isRetweeted ? 'Retweeted' : 'Retweet'} {tweet.retweetsCount}
           </button>
+
+          {isOwner && !isEditing && !isConfirmingDelete && (
+            <>
+              <button type="button" onClick={handleStartEdit}>Edit</button>
+              <button type="button" className="tweet-card__delete" onClick={handleAskDelete}>
+                Delete
+              </button>
+            </>
+          )}
         </div>
+
+        {isConfirmingDelete && (
+          <div
+            className="tweet-card__confirm"
+            role="alert"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <p>Delete this tweet? This cannot be undone.</p>
+            <div>
+              <button
+                type="button"
+                className="tweet-card__confirm-cancel"
+                onClick={handleCancelDelete}
+                disabled={isDeleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="tweet-card__confirm-delete"
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        )}
+        {errorMessage && <p className="tweet-card__error" role="alert">{errorMessage}</p>}
       </div>
     </article>
   );

@@ -934,6 +934,94 @@ body {
   text-align: center;
 }
 
+/* Tweet card: owner actions, delete confirmation and inline edit */
+.tweet-card__actions .tweet-card__delete:hover {
+  background-color: var(--button-danger-hover-border);
+  color: var(--action-danger);
+}
+
+.tweet-card__confirm {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 10px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: var(--button-danger-hover-border);
+  color: var(--action-danger);
+  font-size: 14px;
+  cursor: default;
+}
+
+.tweet-card__confirm p {
+  margin: 0;
+}
+
+.tweet-card__confirm div {
+  display: flex;
+  gap: 8px;
+}
+
+.tweet-card__confirm button {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.tweet-card__confirm button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.tweet-card__confirm-cancel {
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.tweet-card__confirm-cancel:hover {
+  background-color: var(--bg-elevated);
+}
+
+.tweet-card__confirm-delete {
+  border: none;
+  background-color: var(--action-danger);
+  color: var(--text-on-color);
+}
+
+.tweet-card__confirm-delete:hover {
+  background-color: var(--action-danger-hover);
+}
+
+.tweet-card__error {
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: var(--button-danger-hover-border);
+  color: var(--action-danger);
+  font-size: 14px;
+}
+
+.tweet-card__body .tweet-form {
+  padding: 8px 0 0;
+}
+
+.tweet-form .tweet-form__cancel {
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.tweet-form .tweet-form__cancel:hover {
+  background-color: var(--bg-elevated);
+}
+
 /* Feed styles */
 .feed-container .pagination {
   margin: 12px 0 20px;
