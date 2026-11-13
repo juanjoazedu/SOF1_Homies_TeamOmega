@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from 'react-router-dom';
 
 interface FollowCountersProps {
   profileUserName: string;
@@ -10,18 +10,17 @@ export const FollowCounters = ({
   profileUserName,
   followingCount,
   followersCount,
-}: FollowCountersProps) => {
-  
-  return (
-    <nav className="follow-counters">
-      <div>
-        <Link to={`/u/${profileUserName}/following`}>
-          <strong>{followingCount}</strong> Following
-        </Link>
-        <Link to={`/u/${profileUserName}/followers`}>
-          <strong>{followersCount}</strong> Followers
-        </Link> 
-      </div>
-    </nav>
-  );
-};
+}: FollowCountersProps) => (
+  <nav className="follow-counters">
+    <div>
+      <Link to={`/u/${profileUserName}/following`}>
+        <strong>{followingCount}</strong>
+        {' Following'}
+      </Link>
+      <Link to={`/u/${profileUserName}/followers`}>
+        <strong>{followersCount}</strong>
+        {' Followers'}
+      </Link>
+    </div>
+  </nav>
+);
