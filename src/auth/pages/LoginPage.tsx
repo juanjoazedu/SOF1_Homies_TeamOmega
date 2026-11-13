@@ -1,35 +1,42 @@
 import { useContext, useState } from 'react';
 import { Link } from 'react-router-dom';
 
-import { AuthContext } from '../contexts/AuthContext';
-import { LoginForm } from '../components/LoginForm';
 import homiesLogoMark from '../../assets/homies-logo-mark.svg';
+import { LoginForm } from '../components/LoginForm';
+import { AuthContext } from '../contexts/AuthContext';
+import { getErrorMessage } from '../services/authService';
 
 export const LoginPage = () => {
-  const { login } = useContext(AuthContext);
+  const { login, loginWithGoogle } = useContext(AuthContext);
   const [errorMessage, setErrorMessage] = useState('');
-  const [infoMessage, setInfoMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLogin = (username: string, password: string) => {
-    setInfoMessage('');
-    const isValid = login(username, password);
+  const runAction = async (action: () => Promise<void>) => {
+    setErrorMessage('');
+    setIsSubmitting(true);
 
-    if (!isValid) {
-      setErrorMessage('Incorrect username or password.');
+    try {
+      await action();
+    } catch (error) {
+      setErrorMessage(getErrorMessage(error));
+      setIsSubmitting(false);
     }
   };
 
+  const handleLogin = (username: string, password: string) => {
+    runAction(() => login(username, password));
+  };
+
   const handleGoogleLogin = () => {
-    setErrorMessage('');
-    setInfoMessage('Google sign-in will be available once Firebase is connected.');
+    runAction(loginWithGoogle);
   };
 
   return (
     <div className="auth-container">
-      <img src={homiesLogoMark} alt="Homies Logo" />
+      <img src={homiesLogoMark} alt="Homies logo" />
       <h2>Log in to Homies</h2>
 
-      <LoginForm onSubmit={handleLogin} />
+      <LoginForm isSubmitting={isSubmitting} onSubmit={handleLogin} />
 
       {errorMessage && <p role="alert">{errorMessage}</p>}
 
@@ -39,11 +46,10 @@ export const LoginPage = () => {
         type="button"
         className="auth-container__provider"
         onClick={handleGoogleLogin}
+        disabled={isSubmitting}
       >
         Continue with Google
       </button>
-
-      {infoMessage && <p role="status">{infoMessage}</p>}
 
       <p className="auth-container__switch">
         Don&apos;t have an account? <Link to="/register">Sign up</Link>

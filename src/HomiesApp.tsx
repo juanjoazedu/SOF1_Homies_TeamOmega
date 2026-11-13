@@ -1,7 +1,3 @@
-import { AppLayout } from "./ui/components/Layout";
+import { AppLayout } from './ui/components/Layout';
 
-export const HomiesApp = () => {
-  return (
-      <AppLayout/>
-  );
-};
+export const HomiesApp = () => <AppLayout />;

@@ -1,10 +1,10 @@
 import { Link } from 'react-router-dom';
 
-import type { User } from '../types/user.types';
+import type { UserSummary } from '../types/user.types';
 import { FollowButton } from './FollowButton';
 
 interface UserCardProps {
-  user: User;
+  user: UserSummary;
   showFollowButton: boolean;
   isFollowing: boolean;
   onFollow: () => void;

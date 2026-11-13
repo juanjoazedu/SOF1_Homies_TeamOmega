@@ -1,11 +1,11 @@
-import type { User } from '../types/user.types';
+import type { UserSummary } from '../types/user.types';
 import { UserCard } from './UserCard';
 
 interface UserListProps {
-  users: User[];
+  users: UserSummary[];
   myUid: string;
   followingUids: string[];
-  onFollow: (uid: string) => void;
+  onFollow: (user: UserSummary) => void;
   onUnfollow: (uid: string) => void;
 }
 
@@ -23,7 +23,7 @@ export const UserList = ({
           user={user}
           showFollowButton={user.uid !== myUid}
           isFollowing={followingUids.includes(user.uid)}
-          onFollow={() => onFollow(user.uid)}
+          onFollow={() => onFollow(user)}
           onUnfollow={() => onUnfollow(user.uid)}
         />
       </li>

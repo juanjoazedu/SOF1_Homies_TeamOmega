@@ -1,74 +1,89 @@
-import { mockFollows } from "../data/mockFollows";
-import { mockUsers } from "../data/mockUsers";
-import type { User } from "../types/user.types";
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  onSnapshot,
+  query,
+  setDoc,
+  where,
+  type Unsubscribe,
+} from 'firebase/firestore';
 
-let follows = [...mockFollows];
-let users = [...mockUsers];
+import { FirebaseDB } from '../../shared/firebase/firebaseConfig';
+import type { Follow, User, UserSummary } from '../types/user.types';
 
-const sortByName = (users: User[]) => [...users].sort(
+type FollowField = 'followerUid' | 'followingUid';
+type UsersListener = (users: UserSummary[]) => void;
+
+const followsCollection = collection(FirebaseDB, 'follows');
+
+const getFollowId = (followerUid: string, followingUid: string): string => (
+  `${followerUid}_${followingUid}`
+);
+
+const sortByName = (users: UserSummary[]): UserSummary[] => [...users].sort(
   (a, b) => a.fullName.localeCompare(b.fullName, 'es', { sensitivity: 'base' }),
 );
 
+export const toUserSummary = (user: UserSummary): UserSummary => ({
+  uid: user.uid,
+  fullName: user.fullName,
+  username: user.username,
+  ...(user.photoURL ? { photoURL: user.photoURL } : {}),
+});
 
-export const getUserByUid = (uid: string): User | null => {
-  return users.find((user) => user.uid === uid) || null;
+export const getUidByUsername = async (username: string): Promise<string | null> => {
+  const snapshot = await getDoc(doc(FirebaseDB, 'usernames', username.toLowerCase()));
+  return snapshot.exists() ? (snapshot.data().uid as string) : null;
 };
 
-export const getFollowers = (uid: string): User[] => {
-  const followerUids = follows.filter((follow) => follow.followingUid === uid).map((follow) => follow.followerUid);
-  return sortByName(users.filter((user) => followerUids.includes(user.uid)));
+export const subscribeToUser = (
+  uid: string,
+  onChange: (user: User | null) => void,
+): Unsubscribe => onSnapshot(
+  doc(FirebaseDB, 'users', uid),
+  (snapshot) => onChange(snapshot.exists() ? (snapshot.data() as User) : null),
+  () => onChange(null),
+);
+
+const subscribeToFollows = (
+  field: FollowField,
+  uid: string,
+  onChange: UsersListener,
+): Unsubscribe => onSnapshot(
+  query(followsCollection, where(field, '==', uid)),
+  (snapshot) => {
+    const users = snapshot.docs.map((item) => {
+      const follow = item.data() as Follow;
+      return field === 'followingUid' ? follow.follower : follow.following;
+    });
+    onChange(sortByName(users));
+  },
+  () => onChange([]),
+);
+
+export const subscribeToFollowers = (uid: string, onChange: UsersListener): Unsubscribe => (
+  subscribeToFollows('followingUid', uid, onChange)
+);
+
+export const subscribeToFollowing = (uid: string, onChange: UsersListener): Unsubscribe => (
+  subscribeToFollows('followerUid', uid, onChange)
+);
+
+export const followUser = async (follower: UserSummary, following: UserSummary): Promise<void> => {
+  if (follower.uid === following.uid) return;
+
+  const follow: Follow = {
+    followerUid: follower.uid,
+    followingUid: following.uid,
+    follower: toUserSummary(follower),
+    following: toUserSummary(following),
+  };
+
+  await setDoc(doc(followsCollection, getFollowId(follower.uid, following.uid)), follow);
 };
 
-export const getFollowings = (uid: string): User[] => {
-  const followingsUids = follows.filter((follow) => follow.followerUid === uid).map((follow) => follow.followingUid);
-  return sortByName(users.filter((user) => followingsUids.includes(user.uid)));
-};
-
-export const getFollowingsUids = (uid: string): string[] => {
-  return follows.filter((follow) => follow.followerUid === uid).map((follow) => follow.followingUid);
-};
-
-export const followUser = (followerUid: string, followingUid: string): void => {
-  const alreadyFollowing = follows.filter(
-    (follow) =>
-      follow.followerUid === followerUid &&
-      follow.followingUid === followingUid
-  ).length > 0;
-
-  const userExists = users.filter(
-    (user) => user.uid === followingUid
-  ).length > 0;
-
-  if (
-    followerUid === followingUid ||
-    alreadyFollowing ||
-    !userExists
-  ) {
-    return;
-  }
-
-  follows = [...follows, { followerUid, followingUid }];
-};
-
-export const unfollowUser = (followerUid: string, followingUid: string): void => {
-  follows = follows.filter(
-    (follow) =>
-      !(
-        follow.followerUid === followerUid &&
-        follow.followingUid === followingUid
-      )
-  );
-};
-
-export const getUserByUsername = (username: string): User | null => {
-  return users.find((user) => user.username === username) || null;
-};
-
-export const getUserByEmail = (email: string): User | null => {
-  const normalizedEmail = email.trim().toLowerCase();
-  return users.find((user) => user.email === normalizedEmail) || null;
-};
-
-export const addUser = (user: User): void => {
-  users = [...users, user];
+export const unfollowUser = async (followerUid: string, followingUid: string): Promise<void> => {
+  await deleteDoc(doc(followsCollection, getFollowId(followerUid, followingUid)));
 };

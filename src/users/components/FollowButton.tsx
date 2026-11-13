@@ -6,7 +6,18 @@ interface FollowButtonProps {
   onUnfollow: () => void;
 }
 
-export const FollowButton = ({ isFollowing, onFollow, onUnfollow } : FollowButtonProps) => {
+const getButtonText = (isFollowing: boolean, isHovered: boolean): string => {
+  if (!isFollowing) return 'Follow';
+  return isHovered ? 'Unfollow' : 'Following';
+};
+
+const getButtonClass = (isFollowing: boolean, isHovered: boolean): string => {
+  if (!isFollowing) return 'follow-button';
+  if (isHovered) return 'follow-button follow-button--following follow-button--danger';
+  return 'follow-button follow-button--following';
+};
+
+export const FollowButton = ({ isFollowing, onFollow, onUnfollow }: FollowButtonProps) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleClick = () => {
@@ -19,27 +30,19 @@ export const FollowButton = ({ isFollowing, onFollow, onUnfollow } : FollowButto
     setIsHovered(false);
   };
 
-  const buttonText = isFollowing
-    ? isHovered
-      ? 'Unfollow'
-      : 'Following'
-    : 'Follow';
-
-  const buttonClass = isFollowing
-    ? isHovered
-      ? 'follow-button follow-button--following follow-button--danger'
-      : 'follow-button follow-button--following'
-    : 'follow-button';
+  const handleMouseEnter = () => {
+    if (isFollowing) setIsHovered(true);
+  };
 
   return (
     <button
       type="button"
-      className={ buttonClass }
-      onClick={ handleClick }
-      onMouseEnter={ () => isFollowing && setIsHovered(true) }
-      onMouseLeave={ () => setIsHovered(false) }
+      className={getButtonClass(isFollowing, isHovered)}
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {buttonText}
+      {getButtonText(isFollowing, isHovered)}
     </button>
   );
 };
