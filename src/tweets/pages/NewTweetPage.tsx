@@ -1,20 +1,18 @@
 import { useContext } from 'react';
-
-import { AuthContext } from '../../auth/contexts/AuthContext';
 import { PageHeader } from '../../ui/components/PageHeader';
 import { TweetForm } from '../components/TweetForm';
 import { useCreateTweet } from '../hooks/useCreateTweet';
+import { UsersContext } from '../../users/contexts/UsersContext';
 
 export const NewTweetPage = () => {
-  const { authState } = useContext(AuthContext);
-  const uid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
+  const { currentUser } = useContext(UsersContext);
 
   const {
     publish,
     successMessage,
     errorMessage,
     publishedCount,
-  } = useCreateTweet(uid);
+  } = useCreateTweet(currentUser);
 
   return (
     <div className="new-tweet-container">

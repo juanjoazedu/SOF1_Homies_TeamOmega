@@ -1,4 +1,4 @@
-import { getFollowingsUids, getUserByUid } from '../../users/services/userService';
+import type { UserSummary } from '../../users/types/user.types';
 import { mockTweets } from '../data/mockTweet';
 import type {
   InteractionType,
@@ -65,8 +65,8 @@ export const getTweetsForYou = (uid: string): TweetView[] => (
   sortByNewest(tweets).map((tweet) => toView(tweet, uid))
 );
 
-export const getFollowingTweets = (uid: string): TweetView[] => {
-  const authorUids = [uid, ...getFollowingsUids(uid)];
+export const getFollowingTweets = (uid: string, followingUids: string[]): TweetView[] => {
+  const authorUids = [uid, ...followingUids];
   const feedTweets = tweets.filter((tweet) => authorUids.includes(tweet.authorUid));
   return sortByNewest(feedTweets).map((tweet) => toView(tweet, uid));
 };
@@ -81,12 +81,10 @@ export const getTweetById = (tweetId: string, uid: string): TweetView | null => 
   return tweet ? toView(tweet, uid) : null;
 };
 
-export const createTweet = (authorUid: string,contentText: string,media?: TweetMedia[]): Tweet => {
+export const createTweet = (author: UserSummary | null, contentText: string, media?: TweetMedia[]): Tweet => {
   const text = contentText.trim();
   if (!text) throw new Error('Tweet cannot be empty');
   if (text.length > MAX_TWEET_LENGTH) throw new Error('Tweet cannot exceed 280 characters');
-
-  const author = getUserByUid(authorUid);
   if (!author) throw new Error('Author not found');
 
   const newTweet: Tweet = {
