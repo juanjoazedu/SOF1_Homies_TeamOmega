@@ -19,6 +19,7 @@ import {
 import type {
   InteractionType,
   Tweet,
+  TweetDraft,
   TweetInteraction,
 } from '../types/tweet.types';
 import { TweetsContext } from './TweetsContext';
@@ -86,12 +87,12 @@ export const TweetsProvider = ({ children }: TweetsProviderProps) => {
 
   const closeComposer = () => setComposer(null);
 
-  const submitComposer = async (text: string) => {
+  const submitComposer = async (draft: TweetDraft) => {
     if (composer?.tweet) {
-      await updateTweet(composer.tweet.id, text);
+      await updateTweet(composer.tweet, draft);
       setNotice({ message: 'Tweet edited successfully.' });
     } else {
-      await createTweet(currentUser, text);
+      await createTweet(currentUser, draft);
       setNotice({ message: 'Tweet published successfully.' });
     }
 

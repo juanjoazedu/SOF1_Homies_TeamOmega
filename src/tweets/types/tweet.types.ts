@@ -10,6 +10,12 @@ export interface TweetMedia {
   url: string;
 }
 
+export interface TweetDraft {
+  text: string;
+  media: TweetMedia[];
+  files: File[];
+}
+
 export interface Tweet {
   id: string;
   authorUid: string;

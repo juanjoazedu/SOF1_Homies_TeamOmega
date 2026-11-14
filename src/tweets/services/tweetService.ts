@@ -1,8 +1,10 @@
 import {
   addDoc,
   collection,
+  deleteField,
   doc,
   documentId,
+  getDoc,
   getDocs,
   increment,
   limit,
@@ -21,6 +23,8 @@ import {
 } from 'firebase/firestore';
 
 import { FirebaseDB } from '../../shared/firebase/firebaseConfig';
+import { deleteFile, uploadFile } from '../../shared/firebase/storageService';
+import { getFileError, isVideoFile, MAX_TWEET_MEDIA } from '../../shared/utils/mediaFiles';
 import { toUserSummary } from '../../users/services/userService';
 import type { UserSummary } from '../../users/types/user.types';
 import type {
@@ -29,6 +33,7 @@ import type {
   Retweet,
   Tweet,
   TweetDocument,
+  TweetDraft,
   TweetInteraction,
   TweetMedia,
 } from '../types/tweet.types';
@@ -188,32 +193,62 @@ export const subscribeToInteractions = (
   () => onChange([]),
 );
 
-const validateContent = (contentText: string): string => {
-  const text = contentText.trim();
-  if (!text) throw new Error('Tweet cannot be empty');
-  if (text.length > MAX_TWEET_LENGTH) throw new Error('Tweet cannot exceed 280 characters');
-  return text;
+const validateDraft = ({ text, media, files }: TweetDraft): string => {
+  const content = text.trim();
+  const mediaCount = media.length + files.length;
+
+  if (!content && mediaCount === 0) throw new Error('Tweet cannot be empty');
+  if (content.length > MAX_TWEET_LENGTH) throw new Error('Tweet cannot exceed 280 characters');
+  if (mediaCount > MAX_TWEET_MEDIA) {
+    throw new Error(`A tweet can have up to ${MAX_TWEET_MEDIA} photos or videos`);
+  }
+
+  files.forEach((file) => {
+    const fileError = getFileError(file);
+    if (fileError) throw new Error(fileError);
+  });
+
+  return content;
+};
+
+const uploadTweetMedia = (authorUid: string, files: File[]): Promise<TweetMedia[]> => (
+  Promise.all(files.map(async (file) => {
+    const id = crypto.randomUUID();
+    const url = await uploadFile(`tweets/${authorUid}/${id}-${file.name}`, file);
+    const media: TweetMedia = { id, type: isVideoFile(file) ? 'video' : 'image', url };
+    return media;
+  }))
+);
+
+const deleteMediaFiles = async (media: TweetMedia[]): Promise<void> => {
+  await Promise.all(media.map((item) => deleteFile(item.url)));
 };
 
 export const createTweet = async (
   author: UserSummary | null,
-  contentText: string,
-  media?: TweetMedia[],
+  draft: TweetDraft,
 ): Promise<void> => {
-  const text = validateContent(contentText);
+  const text = validateDraft(draft);
   if (!author) throw new Error('Author not found');
 
-  await addDoc(tweetsCollection, {
-    authorUid: author.uid,
-    authorFullName: author.fullName,
-    authorUsername: author.username,
-    contentText: text,
-    likesCount: 0,
-    retweetsCount: 0,
-    createdAt: serverTimestamp(),
-    ...(author.photoURL ? { authorPhotoURL: author.photoURL } : {}),
-    ...(media?.length ? { media } : {}),
-  });
+  const media = await uploadTweetMedia(author.uid, draft.files);
+
+  try {
+    await addDoc(tweetsCollection, {
+      authorUid: author.uid,
+      authorFullName: author.fullName,
+      authorUsername: author.username,
+      contentText: text,
+      likesCount: 0,
+      retweetsCount: 0,
+      createdAt: serverTimestamp(),
+      ...(author.photoURL ? { authorPhotoURL: author.photoURL } : {}),
+      ...(media.length ? { media } : {}),
+    });
+  } catch (error) {
+    await deleteMediaFiles(media);
+    throw error;
+  }
 };
 
 export const toggleInteraction = async (
@@ -224,7 +259,7 @@ export const toggleInteraction = async (
   const interactionRef = doc(interactionsCollection, getInteractionId(user.uid, tweetId, type));
   const tweetRef = doc(tweetsCollection, tweetId);
 
-    await runTransaction(FirebaseDB, async (transaction) => {
+  await runTransaction(FirebaseDB, async (transaction) => {
     const tweetSnapshot = await transaction.get(tweetRef);
     if (!tweetSnapshot.exists()) {
       throw new Error('This tweet no longer exists.');
@@ -252,23 +287,44 @@ export const toggleInteraction = async (
   });
 };
 
-export const updateTweet = async (tweetId: string, contentText: string): Promise<void> => {
-  await updateDoc(doc(tweetsCollection, tweetId), {
-    contentText: validateContent(contentText),
-    isEdited: true,
-  });
+export const updateTweet = async (tweet: Tweet, draft: TweetDraft): Promise<void> => {
+  const text = validateDraft(draft);
+  const uploadedMedia = await uploadTweetMedia(tweet.authorUid, draft.files);
+  const media = [...draft.media, ...uploadedMedia];
+
+  try {
+    await updateDoc(doc(tweetsCollection, tweet.id), {
+      contentText: text,
+      media: media.length ? media : deleteField(),
+      isEdited: true,
+    });
+  } catch (error) {
+    await deleteMediaFiles(uploadedMedia);
+    throw error;
+  }
+
+  const keptIds = draft.media.map((item) => item.id);
+  const removedMedia = (tweet.media ?? []).filter((item) => !keptIds.includes(item.id));
+  await deleteMediaFiles(removedMedia);
 };
 
 export const deleteTweet = async (tweetId: string): Promise<void> => {
+  const tweetRef = doc(tweetsCollection, tweetId);
+  const tweetSnapshot = await getDoc(tweetRef);
+  const media = tweetSnapshot.exists()
+    ? (tweetSnapshot.data() as TweetDocument).media ?? []
+    : [];
+
   const batch = writeBatch(FirebaseDB);
   const interactions = await getDocs(
     query(interactionsCollection, where('tweetId', '==', tweetId)),
   );
 
   interactions.docs.forEach((item) => batch.delete(item.ref));
-  batch.delete(doc(tweetsCollection, tweetId));
+  batch.delete(tweetRef);
 
   await batch.commit();
+  await deleteMediaFiles(media);
 };
 
 export const subscribeToAllRetweets = (

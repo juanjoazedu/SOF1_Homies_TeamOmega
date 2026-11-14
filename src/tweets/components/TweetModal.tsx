@@ -1,12 +1,12 @@
 import { useState } from 'react';
 
 import { Modal } from '../../ui/components/Modal';
-import type { Tweet } from '../types/tweet.types';
+import type { Tweet, TweetDraft } from '../types/tweet.types';
 import { TweetForm } from './TweetForm';
 
 interface TweetModalProps {
   tweet?: Tweet;
-  onSubmit: (text: string) => Promise<void>;
+  onSubmit: (draft: TweetDraft) => Promise<void>;
   onClose: () => void;
 }
 
@@ -16,12 +16,12 @@ export const TweetModal = ({ tweet, onSubmit, onClose }: TweetModalProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleSubmit = async (text: string) => {
+  const handleSubmit = async (draft: TweetDraft) => {
     setIsSubmitting(true);
     setErrorMessage('');
 
     try {
-      await onSubmit(text);
+      await onSubmit(draft);
     } catch (error) {
       setErrorMessage(
         error instanceof Error
@@ -41,6 +41,7 @@ export const TweetModal = ({ tweet, onSubmit, onClose }: TweetModalProps) => {
     >
       <TweetForm
         initialText={tweet?.contentText}
+        initialMedia={tweet?.media}
         submitLabel={isEditing ? 'Save' : 'Post'}
         submittingLabel={isEditing ? 'Saving...' : 'Posting...'}
         isSubmitting={isSubmitting}

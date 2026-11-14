@@ -12,6 +12,7 @@ export interface RegisterData {
   email: string;
   password: string;
   dateOfBirth: IsoDate;
+  photo?: File;
 }
 
 export type AuthState =

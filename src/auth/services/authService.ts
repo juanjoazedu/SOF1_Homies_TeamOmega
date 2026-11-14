@@ -10,7 +10,9 @@ import {
 import { doc, getDoc, runTransaction } from 'firebase/firestore';
 
 import { FirebaseAuth, FirebaseDB } from '../../shared/firebase/firebaseConfig';
+import { deleteFile, uploadFile } from '../../shared/firebase/storageService';
 import type { IsoDate } from '../../shared/utils/formatDate';
+import { getFileError } from '../../shared/utils/mediaFiles';
 import type { User } from '../../users/types/user.types';
 import type { RegisterData, SessionUser } from '../types/auth.types';
 
@@ -87,27 +89,37 @@ export const registerUser = async (data: RegisterData): Promise<SessionUser> => 
     throw new Error('Username must have 4 to 15 letters, numbers or underscores.');
   }
   if (!data.dateOfBirth) throw new Error('Date of birth is required.');
+  if (data.photo) {
+    const photoError = getFileError(data.photo, false);
+    if (photoError) throw new Error(photoError);
+  }
   if (await getEmailByUsername(username)) throw new Error('That username is already taken.');
 
   const credential = await createUserWithEmailAndPassword(FirebaseAuth, email, data.password);
-
-  const newUser: User = {
-    uid: credential.user.uid,
-    fullName,
-    username,
-    email,
-    dateOfBirth: data.dateOfBirth,
-    dateOfRegistration: getTodayIsoDate(),
-  };
+  let photoURL = '';
 
   try {
+    if (data.photo) {
+      photoURL = await uploadFile(`avatars/${credential.user.uid}`, data.photo);
+    }
+
+    const newUser: User = {
+      uid: credential.user.uid,
+      fullName,
+      username,
+      email,
+      dateOfBirth: data.dateOfBirth,
+      dateOfRegistration: getTodayIsoDate(),
+      ...(photoURL ? { photoURL } : {}),
+    };
+
     await createProfile(newUser);
+    return toSessionUser(newUser);
   } catch (error) {
+    if (photoURL) await deleteFile(photoURL);
     await deleteUser(credential.user);
     throw error;
   }
-
-  return toSessionUser(newUser);
 };
 
 const buildGoogleUsername = (firebaseUser: FirebaseUser): string => {
