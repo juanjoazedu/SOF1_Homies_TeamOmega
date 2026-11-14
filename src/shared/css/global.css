@@ -176,6 +176,62 @@ body {
   outline-offset: 2px;
 }
 
+/* Register profile photo */
+.auth-form__photo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.auth-form .auth-form__photo img {
+  flex-shrink: 0;
+  width: 64px;
+  height: 64px;
+  margin: 0;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.auth-form .auth-form__photo img.avatar-placeholder {
+  object-fit: contain;
+}
+
+.auth-form__photo label {
+  flex: 1;
+  min-width: 0;
+}
+
+.auth-form .auth-form__photo input {
+  padding: 8px;
+  font-size: 14px;
+}
+
+.auth-form__photo input::file-selector-button {
+  margin-right: 12px;
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.auth-form .auth-form__remove-photo {
+  margin-top: 0;
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.auth-form .auth-form__remove-photo:hover {
+  background-color: var(--button-danger-hover-border);
+  color: var(--action-danger);
+}
+
 .auth-container p[role="alert"] {
   margin: 0;
   padding: 10px 14px;
@@ -747,6 +803,79 @@ body {
   background-color: var(--bg-elevated);
 }
 
+/* Tweet form media */
+.tweet-form__file-input {
+  display: none;
+}
+
+.tweet-form .tweet-form__media-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  margin-right: auto;
+  padding: 0;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--action-accept);
+}
+
+.tweet-form .tweet-form__media-button:hover {
+  background-color: var(--bg-elevated);
+}
+
+.tweet-form .tweet-form__media-button:disabled {
+  background-color: transparent;
+  color: var(--text-muted);
+}
+
+.tweet-form__media-button .tweet-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.tweet-form__media {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.tweet-form__thumb {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background-color: var(--bg-elevated);
+}
+
+.tweet-form__thumb img,
+.tweet-form__thumb video {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+
+.tweet-form .tweet-form__remove-media {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--action-primary) 75%, transparent);
+  font-size: 18px;
+  line-height: 1;
+}
+
+.tweet-form .tweet-form__remove-media:hover {
+  background-color: var(--action-primary-hover);
+}
+
 /* Tweet card styles */
 .tweet-card {
   display: flex;
@@ -802,6 +931,57 @@ img.avatar-placeholder {
 .profile-header>div:first-child>img.avatar-placeholder {
   background-color: var(--bg-elevated);
   object-fit: contain;
+}
+
+.auth-form__photo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.auth-form__photo-label {
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-form__photo-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-form .auth-form__select-photo {
+  margin-top: 0;
+  padding: 6px 14px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-form .auth-form__select-photo:hover {
+  background-color: var(--bg-elevated);
+}
+
+.auth-form .auth-form__remove-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-top: 0;
+  padding: 0;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+
+.auth-form .auth-form__remove-photo:hover {
+  background-color: var(--button-danger-hover-border);
+  color: var(--action-danger);
 }
 
 .tweet-card__body {
@@ -923,7 +1103,8 @@ img.avatar-placeholder {
 
 /* Error messages */
 .tweet-card__error,
-.modal__error {
+.modal__error,
+.tweet-form__error {
   margin: 10px 0 0;
   padding: 10px 14px;
   border-radius: 10px;
@@ -967,6 +1148,11 @@ img.avatar-placeholder {
   mask-image: url('../../assets/trash.svg');
 }
 
+.tweet-icon--media {
+  -webkit-mask-image: url('../../assets/media.svg');
+  mask-image: url('../../assets/media.svg');
+}
+
 .tweet-card__retweeted-by .tweet-icon {
   width: 16px;
   height: 16px;
@@ -1002,6 +1188,8 @@ img.avatar-placeholder {
 
 .modal {
   width: min(100%, 360px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
   box-sizing: border-box;
   padding: 32px;
   display: flex;

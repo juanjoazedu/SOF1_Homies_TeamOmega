@@ -29,11 +29,11 @@ export const AppRouter = () => {
       <Route path="/u/:username" element={<UserProfilePage />} />
       <Route
         path="/u/:username/followers"
-        element={<FollowListPage key="followers" type="followers" />}
+        element={<FollowListPage type="followers" />}
       />
       <Route
         path="/u/:username/following"
-        element={<FollowListPage key="following" type="following" />}
+        element={<FollowListPage type="following" />}
       />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

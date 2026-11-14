@@ -2,8 +2,6 @@ import { useContext } from 'react';
 import { useParams } from 'react-router-dom';
 
 import { AuthContext } from '../../auth/contexts/AuthContext';
-import { usePagination } from '../../shared/hooks/usePagination';
-import { Pagination } from '../../ui/components/Pagination';
 import { FollowsHeader } from '../components/FollowsHeader';
 import { UserList } from '../components/UserList';
 import { UsersContext } from '../contexts/UsersContext';
@@ -25,7 +23,6 @@ export const FollowListPage = ({ type }: FollowListPageProps) => {
     following,
     isLoading,
   } = useUserProfile(username);
-  const pagination = usePagination(type === 'followers' ? followers : following);
 
   if (isLoading || !profileUser) {
     return (
@@ -40,21 +37,13 @@ export const FollowListPage = ({ type }: FollowListPageProps) => {
       <FollowsHeader fullName={profileUser.fullName} username={profileUser.username} />
 
       <UserList
-        users={pagination.items}
+        key={type}
+        users={type === 'followers' ? followers : following}
         myUid={myUid}
         followingUids={followingUids}
         onFollow={follow}
         onUnfollow={unfollow}
-      />
-
-      <Pagination
-        label={type === 'followers' ? 'Followers pagination' : 'Following pagination'}
-        currentPage={pagination.currentPage}
-        totalPages={pagination.totalPages}
-        hasNextPage={pagination.hasNextPage}
-        hasPreviousPage={pagination.hasPreviousPage}
-        onNext={pagination.nextPage}
-        onPrevious={pagination.previousPage}
+        paginationLabel={type === 'followers' ? 'Followers pagination' : 'Following pagination'}
       />
     </div>
   );
