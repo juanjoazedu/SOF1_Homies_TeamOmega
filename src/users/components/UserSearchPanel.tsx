@@ -1,8 +1,6 @@
 import { useContext, useEffect, useState } from 'react';
 
 import { AuthContext } from '../../auth/contexts/AuthContext';
-import { usePagination } from '../../shared/hooks/usePagination';
-import { Pagination } from '../../ui/components/Pagination';
 import { UsersContext } from '../contexts/UsersContext';
 import { useAllUsers } from '../hooks/useAllUsers';
 import { UserList } from './UserList';
@@ -30,12 +28,6 @@ export const UserSearchPanel = () => {
   const results = users.filter((user) => (
     user.uid !== myUid && user.username.toLowerCase().startsWith(searchTerm)
   ));
-  const pagination = usePagination(results, PAGE_SIZE);
-
-  const handleSearchChange = (value: string) => {
-    setSearch(value);
-    pagination.goToPage(1);
-  };
 
   return (
     <section className="user-search" aria-label="Search users">
@@ -46,7 +38,7 @@ export const UserSearchPanel = () => {
           type="search"
           placeholder="Search by @username"
           value={search}
-          onChange={(event) => handleSearchChange(event.target.value)}
+          onChange={(event) => setSearch(event.target.value)}
           autoComplete="off"
         />
       </label>
@@ -61,25 +53,16 @@ export const UserSearchPanel = () => {
         )}
 
         {results.length > 0 && (
-          <>
-            <UserList
-              users={pagination.items}
-              myUid={myUid}
-              followingUids={followingUids}
-              onFollow={follow}
-              onUnfollow={unfollow}
-            />
-
-            <Pagination
-              label="Users pagination"
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              hasNextPage={pagination.hasNextPage}
-              hasPreviousPage={pagination.hasPreviousPage}
-              onNext={pagination.nextPage}
-              onPrevious={pagination.previousPage}
-            />
-          </>
+          <UserList
+            key={searchTerm}
+            users={results}
+            myUid={myUid}
+            followingUids={followingUids}
+            onFollow={follow}
+            onUnfollow={unfollow}
+            paginationLabel="Users pagination"
+            pageSize={PAGE_SIZE}
+          />
         )}
       </div>
     </section>
