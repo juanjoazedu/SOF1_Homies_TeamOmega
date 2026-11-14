@@ -8,6 +8,7 @@ import { useAllUsers } from '../hooks/useAllUsers';
 import { UserList } from './UserList';
 
 const SEARCH_DELAY = 500;
+const PAGE_SIZE = 6;
 
 export const UserSearchPanel = () => {
   const { authState } = useContext(AuthContext);
@@ -29,7 +30,7 @@ export const UserSearchPanel = () => {
   const results = users.filter((user) => (
     user.uid !== myUid && user.username.toLowerCase().startsWith(searchTerm)
   ));
-  const pagination = usePagination(results);
+  const pagination = usePagination(results, PAGE_SIZE);
 
   const handleSearchChange = (value: string) => {
     setSearch(value);

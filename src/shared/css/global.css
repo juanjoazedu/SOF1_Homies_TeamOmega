@@ -1384,10 +1384,6 @@ img.avatar-placeholder {
   font-weight: 800;
 }
 
-.user-search .user-list li {
-  padding: 10px 16px;
-}
-
 .user-search .user-card {
   gap: 12px;
 }
