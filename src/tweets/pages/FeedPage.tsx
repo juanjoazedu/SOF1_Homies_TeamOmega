@@ -10,12 +10,12 @@ export const FeedPage = () => {
   const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
 
   const {
-    tweets,
+    items,
     isLoading,
     like,
     retweet,
   } = useTweets(activeTab);
-  const pagination = usePagination(tweets);
+  const pagination = usePagination(items);
 
   const changeTab = (tab: FeedTab) => {
     setActiveTab(tab);
@@ -34,14 +34,14 @@ export const FeedPage = () => {
         <p className="page-status">Loading tweets...</p>
       ) : (
         <TweetList
-          tweets={pagination.items}
+          items={pagination.items}
           onLike={like}
           onRetweet={retweet}
           emptyMessage={emptyMessage}
         />
       )}
 
-      {!isLoading && tweets.length > 0 && (
+      {!isLoading && items.length > 0 && (
         <Pagination
           label="Feed pagination"
           currentPage={pagination.currentPage}

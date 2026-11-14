@@ -1,5 +1,7 @@
 import type { Timestamp } from 'firebase/firestore';
 
+import type { UserSummary } from '../../users/types/user.types';
+
 export type MediaType = 'image' | 'video';
 
 export interface TweetMedia {
@@ -34,6 +36,22 @@ export interface TweetInteraction {
   uid: string;
   tweetId: string;
   type: InteractionType;
+  user?: UserSummary;
+}
+
+export type InteractionDocument = TweetInteraction & { createdAt?: Timestamp };
+
+export interface Retweet {
+  tweetId: string;
+  user: UserSummary;
+  createdAt: Date;
+}
+
+export interface FeedItem {
+  key: string;
+  tweet: TweetView;
+  retweetedBy?: UserSummary;
+  activityAt: Date;
 }
 
 export type TweetDocument = Omit<Tweet, 'id' | 'createdAt'> & { createdAt: Timestamp };

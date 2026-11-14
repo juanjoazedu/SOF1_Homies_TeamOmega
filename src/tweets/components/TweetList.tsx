@@ -1,28 +1,33 @@
-import type { TweetView } from '../types/tweet.types';
+import type { FeedItem } from '../types/tweet.types';
 import { TweetCard } from './TweetCard';
 
 interface TweetListProps {
-  tweets: TweetView[];
-  onLike: (tweetId: string) => void;
-  onRetweet: (tweetId: string) => void;
+  items: FeedItem[];
+  onLike: (tweetId: string) => Promise<void>;
+  onRetweet: (tweetId: string) => Promise<void>;
   emptyMessage?: string;
 }
 
 export const TweetList = ({
-  tweets,
+  items,
   onLike,
   onRetweet,
   emptyMessage = 'There are no tweets yet.',
 }: TweetListProps) => {
-  if (tweets.length === 0) {
+  if (items.length === 0) {
     return <p className="tweet-list__empty">{emptyMessage}</p>;
   }
 
   return (
     <ul className="tweet-list">
-      {tweets.map((tweet) => (
-        <li key={tweet.id}>
-          <TweetCard tweet={tweet} onLike={onLike} onRetweet={onRetweet} />
+      {items.map((item) => (
+        <li key={item.key}>
+          <TweetCard
+            tweet={item.tweet}
+            retweetedBy={item.retweetedBy}
+            onLike={onLike}
+            onRetweet={onRetweet}
+          />
         </li>
       ))}
     </ul>

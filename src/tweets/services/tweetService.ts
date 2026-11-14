@@ -1,25 +1,32 @@
 import {
   addDoc,
   collection,
-  deleteDoc,
   doc,
+  documentId,
+  getDocs,
   increment,
   limit,
   onSnapshot,
   orderBy,
   query,
+  runTransaction,
   serverTimestamp,
   updateDoc,
   where,
   writeBatch,
+  type Query,
   type QueryDocumentSnapshot,
+  type QuerySnapshot,
   type Unsubscribe,
 } from 'firebase/firestore';
 
 import { FirebaseDB } from '../../shared/firebase/firebaseConfig';
+import { toUserSummary } from '../../users/services/userService';
 import type { UserSummary } from '../../users/types/user.types';
 import type {
+  InteractionDocument,
   InteractionType,
+  Retweet,
   Tweet,
   TweetDocument,
   TweetInteraction,
@@ -51,6 +58,26 @@ const toTweet = (snapshot: QueryDocumentSnapshot): Tweet => {
   return { ...data, id: snapshot.id, createdAt: data.createdAt.toDate() };
 };
 
+const toTweets = (snapshot: QuerySnapshot): Tweet[] => snapshot.docs.map(toTweet);
+
+const toRetweets = (snapshot: QuerySnapshot): Retweet[] => {
+  const retweets: Retweet[] = [];
+
+  snapshot.docs.forEach((item) => {
+    const data = item.data({ serverTimestamps: 'estimate' }) as InteractionDocument;
+
+    if (data.createdAt && data.user) {
+      retweets.push({
+        tweetId: data.tweetId,
+        user: data.user,
+        createdAt: data.createdAt.toDate(),
+      });
+    }
+  });
+
+  return retweets;
+};
+
 const sortByNewest = (list: Tweet[]): Tweet[] => [...list].sort(
   (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
 );
@@ -63,34 +90,26 @@ const chunk = <T>(items: T[], size: number): T[][] => {
   return chunks;
 };
 
-export const subscribeToAllTweets = (onChange: TweetsListener): Unsubscribe => onSnapshot(
-  query(tweetsCollection, orderBy('createdAt', 'desc'), limit(MAX_FEED_TWEETS)),
-  (snapshot) => onChange(snapshot.docs.map(toTweet)),
-  () => onChange([]),
-);
-
-export const subscribeToUserTweets = (
-  authorUid: string,
-  onChange: TweetsListener,
-): Unsubscribe => onSnapshot(
-  query(tweetsCollection, where('authorUid', '==', authorUid)),
-  (snapshot) => onChange(sortByNewest(snapshot.docs.map(toTweet))),
-  () => onChange([]),
-);
-
-export const subscribeToAuthorsTweets = (
-  authorUids: string[],
-  onChange: TweetsListener,
+const subscribeInGroups = <T>(
+  values: string[],
+  buildQuery: (group: string[]) => Query,
+  mapSnapshot: (snapshot: QuerySnapshot) => T[],
+  onChange: (items: T[]) => void,
 ): Unsubscribe => {
-  const groups = chunk(authorUids, FIRESTORE_IN_LIMIT);
-  const results: Tweet[][] = groups.map(() => []);
+  const groups = chunk(values, FIRESTORE_IN_LIMIT);
 
-  const emit = () => onChange(sortByNewest(results.flat()));
+  if (groups.length === 0) {
+    onChange([]);
+    return () => {};
+  }
+
+  const results: T[][] = groups.map(() => []);
+  const emit = () => onChange(results.flat());
 
   const unsubscribers = groups.map((group, index) => onSnapshot(
-    query(tweetsCollection, where('authorUid', 'in', group)),
+    buildQuery(group),
     (snapshot) => {
-      results[index] = snapshot.docs.map(toTweet);
+      results[index] = mapSnapshot(snapshot);
       emit();
     },
     () => {
@@ -101,6 +120,55 @@ export const subscribeToAuthorsTweets = (
 
   return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
 };
+
+export const subscribeToAllTweets = (onChange: TweetsListener): Unsubscribe => onSnapshot(
+  query(tweetsCollection, orderBy('createdAt', 'desc'), limit(MAX_FEED_TWEETS)),
+  (snapshot) => onChange(toTweets(snapshot)),
+  () => onChange([]),
+);
+
+export const subscribeToUserTweets = (
+  authorUid: string,
+  onChange: TweetsListener,
+): Unsubscribe => onSnapshot(
+  query(tweetsCollection, where('authorUid', '==', authorUid)),
+  (snapshot) => onChange(sortByNewest(toTweets(snapshot))),
+  () => onChange([]),
+);
+
+export const subscribeToAuthorsTweets = (
+  authorUids: string[],
+  onChange: TweetsListener,
+): Unsubscribe => subscribeInGroups(
+  authorUids,
+  (group) => query(tweetsCollection, where('authorUid', 'in', group)),
+  toTweets,
+  (tweets) => onChange(sortByNewest(tweets)),
+);
+
+export const subscribeToTweetsByIds = (
+  tweetIds: string[],
+  onChange: TweetsListener,
+): Unsubscribe => subscribeInGroups(
+  tweetIds,
+  (group) => query(tweetsCollection, where(documentId(), 'in', group)),
+  toTweets,
+  onChange,
+);
+
+export const subscribeToRetweets = (
+  uids: string[],
+  onChange: (retweets: Retweet[]) => void,
+): Unsubscribe => subscribeInGroups(
+  uids,
+  (group) => query(
+    interactionsCollection,
+    where('type', '==', 'retweet'),
+    where('uid', 'in', group),
+  ),
+  toRetweets,
+  onChange,
+);
 
 export const subscribeToTweet = (
   tweetId: string,
@@ -148,32 +216,40 @@ export const createTweet = async (
   });
 };
 
-export const setInteraction = async (
-  uid: string,
+export const toggleInteraction = async (
+  user: UserSummary,
   tweetId: string,
   type: InteractionType,
-  isActive: boolean,
 ): Promise<void> => {
-  const batch = writeBatch(FirebaseDB);
-  const interactionRef = doc(interactionsCollection, getInteractionId(uid, tweetId, type));
+  const interactionRef = doc(interactionsCollection, getInteractionId(user.uid, tweetId, type));
+  const tweetRef = doc(tweetsCollection, tweetId);
 
-  if (isActive) {
-    const interaction: TweetInteraction = {
-      id: interactionRef.id,
-      uid,
-      tweetId,
-      type,
-    };
-    batch.set(interactionRef, interaction);
-  } else {
-    batch.delete(interactionRef);
-  }
+    await runTransaction(FirebaseDB, async (transaction) => {
+    const tweetSnapshot = await transaction.get(tweetRef);
+    if (!tweetSnapshot.exists()) {
+      throw new Error('This tweet no longer exists.');
+    }
 
-  batch.update(doc(tweetsCollection, tweetId), {
-    [COUNTER_FIELDS[type]]: increment(isActive ? 1 : -1),
+    const interactionSnapshot = await transaction.get(interactionRef);
+    const isActive = interactionSnapshot.exists();
+
+    if (isActive) {
+      transaction.delete(interactionRef);
+    } else {
+      transaction.set(interactionRef, {
+        id: interactionRef.id,
+        uid: user.uid,
+        tweetId,
+        type,
+        createdAt: serverTimestamp(),
+        ...(type === 'retweet' ? { user: toUserSummary(user) } : {}),
+      });
+    }
+
+    transaction.update(tweetRef, {
+      [COUNTER_FIELDS[type]]: increment(isActive ? -1 : 1),
+    });
   });
-
-  await batch.commit();
 };
 
 export const updateTweet = async (tweetId: string, contentText: string): Promise<void> => {
@@ -184,5 +260,21 @@ export const updateTweet = async (tweetId: string, contentText: string): Promise
 };
 
 export const deleteTweet = async (tweetId: string): Promise<void> => {
-  await deleteDoc(doc(tweetsCollection, tweetId));
+  const batch = writeBatch(FirebaseDB);
+  const interactions = await getDocs(
+    query(interactionsCollection, where('tweetId', '==', tweetId)),
+  );
+
+  interactions.docs.forEach((item) => batch.delete(item.ref));
+  batch.delete(doc(tweetsCollection, tweetId));
+
+  await batch.commit();
 };
+
+export const subscribeToAllRetweets = (
+  onChange: (retweets: Retweet[]) => void,
+): Unsubscribe => onSnapshot(
+  query(interactionsCollection, where('type', '==', 'retweet')),
+  (snapshot) => onChange(toRetweets(snapshot)),
+  () => onChange([]),
+);

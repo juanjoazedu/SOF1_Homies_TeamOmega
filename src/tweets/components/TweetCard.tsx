@@ -6,20 +6,29 @@ import {
 } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
+import avatarIcon from '../../assets/avatar.svg';
 import { AuthContext } from '../../auth/contexts/AuthContext';
 import { formatDate } from '../../shared/utils/formatDate';
+import type { UserSummary } from '../../users/types/user.types';
 import { TweetsContext } from '../contexts/TweetsContext';
 import type { TweetView } from '../types/tweet.types';
 import { TweetForm } from './TweetForm';
 
 interface TweetCardProps {
   tweet: TweetView;
-  onLike: (tweetId: string) => void;
-  onRetweet: (tweetId: string) => void;
+  retweetedBy?: UserSummary;
+  onLike: (tweetId: string) => Promise<void>;
+  onRetweet: (tweetId: string) => Promise<void>;
   isClickable?: boolean;
 }
 
-export const TweetCard = ({ tweet, onLike, onRetweet, isClickable = true }: TweetCardProps) => {
+export const TweetCard = ({
+  tweet,
+  retweetedBy,
+  onLike,
+  onRetweet,
+  isClickable = true,
+}: TweetCardProps) => {
   const navigate = useNavigate();
   const { authState } = useContext(AuthContext);
   const { editTweet, removeTweet } = useContext(TweetsContext);
@@ -30,8 +39,9 @@ export const TweetCard = ({ tweet, onLike, onRetweet, isClickable = true }: Twee
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
 
-  const isOwner = authState.status === 'authenticated'
-    && authState.sessionUser.uid === tweet.authorUid;
+  const myUid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
+  const isOwner = myUid === tweet.authorUid;
+  const retweeterName = retweetedBy?.uid === myUid ? 'You' : retweetedBy?.fullName;
 
   const profileUrl = `/u/${tweet.authorUsername}`;
   const tweetUrl = `${profileUrl}/tweet/${tweet.id}`;
@@ -46,12 +56,18 @@ export const TweetCard = ({ tweet, onLike, onRetweet, isClickable = true }: Twee
     }
   };
 
-  const handleAction = (
+  const handleAction = async (
     event: MouseEvent<HTMLButtonElement>,
-    action: (tweetId: string) => void,
+    action: (tweetId: string) => Promise<void>,
   ) => {
     event.stopPropagation();
-    action(tweet.id);
+    setErrorMessage('');
+
+    try {
+      await action(tweet.id);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : 'Could not update the tweet.');
+    }
   };
 
   const handleStartEdit = (event: MouseEvent<HTMLButtonElement>) => {
@@ -115,24 +131,26 @@ export const TweetCard = ({ tweet, onLike, onRetweet, isClickable = true }: Twee
         to={profileUrl}
         onClick={(event) => event.stopPropagation()}
       >
-        {tweet.authorPhotoURL ? (
-          <img
-            className="tweet-card__avatar"
-            src={tweet.authorPhotoURL}
-            alt={`Photo of ${tweet.authorFullName}`}
-          />
-        ) : (
-          <div
-            className="tweet-card__avatar tweet-card__avatar--empty"
-            role="img"
-            aria-label={`Photo of ${tweet.authorFullName}`}
-          >
-            Without photo
-          </div>
-        )}
+        <img
+          className="tweet-card__avatar avatar-placeholder"
+          src={avatarIcon}
+          alt={tweet.authorFullName}
+        />
       </Link>
 
       <div className="tweet-card__body">
+        {retweetedBy && (
+          <p className="tweet-card__retweeted-by">
+            <span className="tweet-icon tweet-icon--retweet" aria-hidden="true" />
+            <Link
+              to={`/u/${retweetedBy.username}`}
+              onClick={(event) => event.stopPropagation()}
+            >
+              {`${retweeterName} reposted`}
+            </Link>
+          </p>
+        )}
+
         <p className="tweet-card__header">
           <Link
             to={profileUrl}
@@ -166,7 +184,7 @@ export const TweetCard = ({ tweet, onLike, onRetweet, isClickable = true }: Twee
           <div className="tweet-card__media">
             {tweet.media.map((item) => (
               item.type === 'image'
-                ? <img key={item.id} src={item.url} alt="Tweet media" />
+                ? <img key={item.id} src={item.url} alt="" />
                 : (
                   <video
                     key={item.id}
@@ -183,24 +201,35 @@ export const TweetCard = ({ tweet, onLike, onRetweet, isClickable = true }: Twee
           <button
             type="button"
             aria-pressed={tweet.isLiked}
+            aria-label={`${tweet.isLiked ? 'Unlike' : 'Like'}, ${tweet.likesCount} likes`}
             onClick={(event) => handleAction(event, onLike)}
           >
-            {tweet.isLiked ? 'Liked' : 'Like'} {tweet.likesCount}
+            <span className="tweet-icon tweet-icon--heart" aria-hidden="true" />
+            {tweet.likesCount}
           </button>
 
           <button
             type="button"
             aria-pressed={tweet.isRetweeted}
+            aria-label={`${tweet.isRetweeted ? 'Undo retweet' : 'Retweet'}, ${tweet.retweetsCount} retweets`}
             onClick={(event) => handleAction(event, onRetweet)}
           >
-            {tweet.isRetweeted ? 'Retweeted' : 'Retweet'} {tweet.retweetsCount}
+            <span className="tweet-icon tweet-icon--retweet" aria-hidden="true" />
+            {tweet.retweetsCount}
           </button>
 
           {isOwner && !isEditing && !isConfirmingDelete && (
             <>
-              <button type="button" onClick={handleStartEdit}>Edit</button>
-              <button type="button" className="tweet-card__delete" onClick={handleAskDelete}>
-                Delete
+              <button type="button" aria-label="Edit tweet" onClick={handleStartEdit}>
+                <span className="tweet-icon tweet-icon--edit" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="tweet-card__delete"
+                aria-label="Delete tweet"
+                onClick={handleAskDelete}
+              >
+                <span className="tweet-icon tweet-icon--trash" aria-hidden="true" />
               </button>
             </>
           )}

@@ -1,7 +1,6 @@
 import {
   useContext,
   useEffect,
-  useMemo,
   useState,
   type ReactNode,
 } from 'react';
@@ -11,8 +10,8 @@ import { UsersContext } from '../../users/contexts/UsersContext';
 import {
   createTweet,
   deleteTweet,
-  setInteraction,
   subscribeToInteractions,
+  toggleInteraction,
   updateTweet,
 } from '../services/tweetService';
 import type {
@@ -38,28 +37,31 @@ export const TweetsProvider = ({ children }: TweetsProviderProps) => {
   const { currentUser } = useContext(UsersContext);
   const uid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
 
-  const [interactions, setInteractions] = useState<TweetInteraction[]>([]);
+  const [likedTweetIds, setLikedTweetIds] = useState<string[]>([]);
+  const [retweetedTweetIds, setRetweetedTweetIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!uid) return undefined;
 
-    return subscribeToInteractions(uid, setInteractions);
+    return subscribeToInteractions(uid, (interactions) => {
+      setLikedTweetIds(getTweetIds(interactions, 'like'));
+      setRetweetedTweetIds(getTweetIds(interactions, 'retweet'));
+    });
   }, [uid]);
-
-  const likedTweetIds = useMemo(() => getTweetIds(interactions, 'like'), [interactions]);
-  const retweetedTweetIds = useMemo(() => getTweetIds(interactions, 'retweet'), [interactions]);
 
   const publish = (contentText: string, media?: TweetMedia[]) => (
     createTweet(currentUser, contentText, media)
   );
 
-  const toggleLike = (tweetId: string) => (
-    setInteraction(uid, tweetId, 'like', !likedTweetIds.includes(tweetId))
-  );
+  const toggleLike = async (tweetId: string) => {
+    if (!currentUser) return;
+    await toggleInteraction(currentUser, tweetId, 'like');
+  };
 
-  const toggleRetweet = (tweetId: string) => (
-    setInteraction(uid, tweetId, 'retweet', !retweetedTweetIds.includes(tweetId))
-  );
+  const toggleRetweet = async (tweetId: string) => {
+    if (!currentUser) return;
+    await toggleInteraction(currentUser, tweetId, 'retweet');
+  };
 
   return (
     <TweetsContext.Provider value={{
