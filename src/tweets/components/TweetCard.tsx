@@ -10,6 +10,7 @@ import avatarIcon from '../../assets/avatar.svg';
 import { AuthContext } from '../../auth/contexts/AuthContext';
 import { formatDate } from '../../shared/utils/formatDate';
 import type { UserSummary } from '../../users/types/user.types';
+import { ConfirmModal } from '../../ui/components/ConfirmModal';
 import { TweetsContext } from '../contexts/TweetsContext';
 import type { TweetView } from '../types/tweet.types';
 import { TweetForm } from './TweetForm';
@@ -38,8 +39,10 @@ export const TweetCard = ({
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [hasPhotoError, setHasPhotoError] = useState(false);
 
   const myUid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
+  const hasPhoto = Boolean(tweet.authorPhotoURL) && !hasPhotoError;
   const isOwner = myUid === tweet.authorUid;
   const retweeterName = retweetedBy?.uid === myUid ? 'You' : retweetedBy?.fullName;
 
@@ -96,22 +99,20 @@ export const TweetCard = ({
     setIsConfirmingDelete(true);
   };
 
-  const handleCancelDelete = (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
+  const handleCancelDelete = () => {
     setIsConfirmingDelete(false);
   };
 
-  const handleConfirmDelete = async (event: MouseEvent<HTMLButtonElement>) => {
-    event.stopPropagation();
+  const handleConfirmDelete = async () => {
     setIsDeleting(true);
 
     try {
       await removeTweet(tweet.id);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : 'Could not delete the tweet.');
-      setIsConfirmingDelete(false);
     } finally {
       setIsDeleting(false);
+      setIsConfirmingDelete(false);
     }
   };
 
@@ -131,12 +132,21 @@ export const TweetCard = ({
         to={profileUrl}
         onClick={(event) => event.stopPropagation()}
       >
-        <img
-          className="tweet-card__avatar avatar-placeholder"
-          src={avatarIcon}
-          alt={tweet.authorFullName}
-          referrerPolicy="no-referrer"
-        />
+        {hasPhoto ? (
+          <img
+            className="tweet-card__avatar"
+            src={tweet.authorPhotoURL}
+            alt={tweet.authorFullName}
+            referrerPolicy="no-referrer"
+            onError={() => setHasPhotoError(true)}
+          />
+        ) : (
+          <img
+            className="tweet-card__avatar avatar-placeholder"
+            src={avatarIcon}
+            alt={tweet.authorFullName}
+          />
+        )}
       </Link>
 
       <div className="tweet-card__body">
@@ -219,7 +229,7 @@ export const TweetCard = ({
             {tweet.retweetsCount}
           </button>
 
-          {isOwner && !isEditing && !isConfirmingDelete && (
+          {isOwner && !isEditing && (
             <>
               <button type="button" aria-label="Edit tweet" onClick={handleStartEdit}>
                 <span className="tweet-icon tweet-icon--edit" aria-hidden="true" />
@@ -237,31 +247,15 @@ export const TweetCard = ({
         </div>
 
         {isConfirmingDelete && (
-          <div
-            className="tweet-card__confirm"
-            role="alert"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <p>Delete this tweet? This cannot be undone.</p>
-            <div>
-              <button
-                type="button"
-                className="tweet-card__confirm-cancel"
-                onClick={handleCancelDelete}
-                disabled={isDeleting}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="tweet-card__confirm-delete"
-                onClick={handleConfirmDelete}
-                disabled={isDeleting}
-              >
-                {isDeleting ? 'Deleting...' : 'Delete'}
-              </button>
-            </div>
-          </div>
+          <ConfirmModal
+            title="Delete tweet?"
+            message="This can't be undone and it will be removed from your profile and from the feed of the people who follow you."
+            confirmLabel="Delete"
+            processingLabel="Deleting..."
+            isProcessing={isDeleting}
+            onConfirm={handleConfirmDelete}
+            onCancel={handleCancelDelete}
+          />
         )}
         {errorMessage && <p className="tweet-card__error" role="alert">{errorMessage}</p>}
       </div>

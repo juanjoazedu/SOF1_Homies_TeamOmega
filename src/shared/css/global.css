@@ -993,6 +993,84 @@ img.avatar-placeholder {
   color: var(--action-danger);
 }
 
+/* Confirm modal styles */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  box-sizing: border-box;
+  background-color: color-mix(in srgb, var(--action-primary) 45%, transparent);
+}
+
+.modal {
+  width: min(100%, 360px);
+  box-sizing: border-box;
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-radius: 16px;
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.modal__title {
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.modal__message {
+  margin: 0 0 12px;
+  color: var(--text-secondary);
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.modal button {
+  padding: 12px 20px;
+  border-radius: 999px;
+  font-family: var(--font-family);
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.modal button:focus-visible {
+  outline: 2px solid var(--action-accept);
+  outline-offset: 2px;
+}
+
+.modal button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal__confirm {
+  border: none;
+  background-color: var(--action-danger);
+  color: var(--text-on-color);
+}
+
+.modal__confirm:hover:not(:disabled) {
+  background-color: var(--action-danger-hover);
+}
+
+.modal__cancel {
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.modal__cancel:hover:not(:disabled) {
+  background-color: var(--bg-elevated);
+}
+
 .tweet-card__confirm {
   display: flex;
   align-items: center;
