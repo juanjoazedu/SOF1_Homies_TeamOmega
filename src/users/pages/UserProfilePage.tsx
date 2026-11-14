@@ -15,6 +15,8 @@ import { FollowCounters } from '../components/FollowCounters';
 import { UsersContext } from '../contexts/UsersContext';
 import { useUserProfile } from '../hooks/useUserProfile';
 
+import avatarIcon from '../../assets/avatar.svg';
+
 
 export const UserProfilePage = () => {
   const { username = '' } = useParams();
@@ -29,8 +31,8 @@ export const UserProfilePage = () => {
     isLoading,
   } = useUserProfile(username);
 
-  const { tweets, like, retweet } = useTweets('user', profileUser?.uid);
-  const pagination = usePagination(tweets);
+  const { items, like, retweet } = useTweets('user', profileUser?.uid);
+  const pagination = usePagination(items);
 
   if (isLoading) {
     return (
@@ -57,7 +59,11 @@ export const UserProfilePage = () => {
       <PageHeader title={profileUser.fullName} backTo="/" />
       <header className="profile-header">
         <div>
-          <img src={profileUser.photoURL} alt={profileUser.fullName} />
+          {profileUser.photoURL ? (
+            <img src={profileUser.photoURL} alt={profileUser.fullName} />
+          ) : (
+            <img className="avatar-placeholder" src={avatarIcon} alt={profileUser.fullName} />
+          )}
           <h2>{profileUser.fullName}</h2>
           <p>@{profileUser.username}</p>
           <p>{profileUser.bio}</p>
@@ -71,7 +77,7 @@ export const UserProfilePage = () => {
             <img className="svg-icon" src={calendar} alt="" />
             Joined {formatMonthYear(profileUser.dateOfRegistration)}
           </p>
-        </div>  
+        </div>
 
         {!isOwnProfile && (
           <div className="follow-button-container">
@@ -91,13 +97,13 @@ export const UserProfilePage = () => {
       />
 
       <TweetList
-        tweets={pagination.items}
+        items={pagination.items}
         onLike={like}
         onRetweet={retweet}
         emptyMessage={`@${profileUser.username} hasn't tweeted yet.`}
       />
 
-      {tweets.length > 0 && (
+      {items.length > 0 && (
         <Pagination
           label="Tweets pagination"
           currentPage={pagination.currentPage}

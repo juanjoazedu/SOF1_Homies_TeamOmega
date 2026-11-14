@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import type { UserSummary } from '../types/user.types';
 import { FollowButton } from './FollowButton';
 
+import avatarIcon from '../../assets/avatar.svg';
+
 interface UserCardProps {
   user: UserSummary;
   showFollowButton: boolean;
@@ -24,15 +26,9 @@ export const UserCard = ({
     <article className="user-card">
       <Link className="user-card__avatar-link" to={profileUrl}>
         {user.photoURL ? (
-          <img src={user.photoURL} alt={`Photo of ${user.fullName}`} />
+          <img src={user.photoURL} alt={user.fullName} />
         ) : (
-          <div
-            className="user-card__avatar"
-            role="img"
-            aria-label={`Photo of ${user.fullName}`}
-          >
-            Without photo
-          </div>
+          <img className="avatar-placeholder" src={avatarIcon} alt={user.fullName} />
         )}
       </Link>
 
