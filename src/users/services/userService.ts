@@ -87,3 +87,12 @@ export const followUser = async (follower: UserSummary, following: UserSummary):
 export const unfollowUser = async (followerUid: string, followingUid: string): Promise<void> => {
   await deleteDoc(doc(followsCollection, getFollowId(followerUid, followingUid)));
 };
+
+export const subscribeToAllUsers = (onChange: UsersListener): Unsubscribe => onSnapshot(
+  collection(FirebaseDB, 'users'),
+  (snapshot) => {
+    const users = snapshot.docs.map((item) => toUserSummary(item.data() as User));
+    onChange(sortByName(users));
+  },
+  () => onChange([]),
+);
