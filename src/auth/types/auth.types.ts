@@ -6,18 +6,13 @@ export interface SessionUser {
   username: string;
 }
 
-export interface UserCredentials {
-  uid: string;
-  email: string;
-  password: string;
-}
-
 export interface RegisterData {
   fullName: string;
   username: string;
   email: string;
   password: string;
   dateOfBirth: IsoDate;
+  photo?: File;
 }
 
 export type AuthState =
@@ -31,7 +26,8 @@ export type AuthAction =
 
 export interface AuthContextValue {
   authState: AuthState;
-  login: (username: string, password: string) => boolean;
-  register: (data: RegisterData) => void;
-  logout: () => void;
+  login: (username: string, password: string) => Promise<void>;
+  register: (data: RegisterData) => Promise<void>;
+  loginWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
 }

@@ -1,22 +1,27 @@
-import { useReducer, type ReactNode } from 'react';
+import { onAuthStateChanged } from 'firebase/auth';
+import {
+  useEffect,
+  useReducer,
+  useRef,
+  type ReactNode,
+} from 'react';
 
-import { AuthContext } from './AuthContext';
+import { FirebaseAuth } from '../../shared/firebase/firebaseConfig';
 import { authReducer } from '../reducers/authReducer';
+import {
+  getSessionUser,
+  loginWithGoogle as loginWithGoogleService,
+  loginWithUsername,
+  logoutUser,
+  registerUser,
+} from '../services/authService';
+import { clearSession, getStoredSession, saveSession } from '../services/localSession';
 import type { AuthState, RegisterData, SessionUser } from '../types/auth.types';
+import { AuthContext } from './AuthContext';
 
-import { mockUsers } from '../../users/data/mockUsers';
-import { checkCredentials, registerUser } from '../services/authService';
-
-const [defaultUser] = mockUsers;
-
-const defaultSession: SessionUser = {
-  uid: defaultUser.uid,
-  email: defaultUser.email,
-  username: defaultUser.username,
-};
-
-const initialState: AuthState = {
-  status: 'not-authenticated',
+const getInitialState = (): AuthState => {
+  const sessionUser = getStoredSession();
+  return sessionUser ? { status: 'authenticated', sessionUser } : { status: 'checking' };
 };
 
 interface AuthProviderProps {
@@ -24,28 +29,73 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [authState, dispatch] = useReducer(authReducer, initialState);
+  const [authState, dispatch] = useReducer(authReducer, undefined, getInitialState);
+  const isAuthActionRunning = useRef(false);
 
-  const login = (username: string, password: string) => {
-    const sessionUser = checkCredentials(username, password);
-
-    if (!sessionUser) return false;
-
-    dispatch({ type: 'login', sessionUser });
-    return true;
-  };
-
-  const register = (data: RegisterData) => {
-    const sessionUser = registerUser(data);
+  const startSession = (sessionUser: SessionUser) => {
+    saveSession(sessionUser);
     dispatch({ type: 'login', sessionUser });
   };
 
-  const logout = () => {
+  const endSession = () => {
+    clearSession();
     dispatch({ type: 'logout' });
   };
 
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(FirebaseAuth, async (firebaseUser) => {
+      if (isAuthActionRunning.current) return;
+
+      if (!firebaseUser) {
+        endSession();
+        return;
+      }
+
+      try {
+        const sessionUser = await getSessionUser(firebaseUser.uid);
+
+        if (sessionUser) {
+          startSession(sessionUser);
+        } else {
+          await logoutUser();
+        }
+      } catch {
+        if (!getStoredSession()) endSession();
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const runAuthAction = async (action: () => Promise<SessionUser>) => {
+    isAuthActionRunning.current = true;
+
+    try {
+      startSession(await action());
+    } finally {
+      isAuthActionRunning.current = false;
+    }
+  };
+
+  const login = (username: string, password: string) => (
+    runAuthAction(() => loginWithUsername(username, password))
+  );
+
+  const register = (data: RegisterData) => runAuthAction(() => registerUser(data));
+
+  const loginWithGoogle = () => runAuthAction(loginWithGoogleService);
+
+  const logout = () => logoutUser();
+
   return (
-    <AuthContext.Provider value={{ authState, login, register, logout }}>
+    <AuthContext.Provider value={{
+      authState,
+      login,
+      register,
+      loginWithGoogle,
+      logout,
+    }}
+    >
       {children}
     </AuthContext.Provider>
   );

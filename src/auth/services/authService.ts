@@ -1,14 +1,26 @@
+import {
+  createUserWithEmailAndPassword,
+  deleteUser,
+  GoogleAuthProvider,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut,
+  type User as FirebaseUser,
+} from 'firebase/auth';
+import { doc, getDoc, runTransaction } from 'firebase/firestore';
+
+import { FirebaseAuth, FirebaseDB } from '../../shared/firebase/firebaseConfig';
+import { deleteFile, uploadFile } from '../../shared/firebase/storageService';
 import type { IsoDate } from '../../shared/utils/formatDate';
-import { addUser, getUserByEmail, getUserByUsername } from '../../users/services/userService';
+import { getFileError } from '../../shared/utils/mediaFiles';
 import type { User } from '../../users/types/user.types';
-import { mockCredentials } from '../data/mockCredentials';
-import type { RegisterData, SessionUser, UserCredentials } from '../types/auth.types';
+import type { RegisterData, SessionUser } from '../types/auth.types';
 
 export const MIN_PASSWORD_LENGTH = 6;
 
 const usernamePattern = /^\w{4,15}$/;
 
-let credentials: UserCredentials[] = [...mockCredentials];
+const getTodayIsoDate = (): IsoDate => new Date().toLocaleDateString('en-CA') as IsoDate;
 
 const toSessionUser = (user: User): SessionUser => ({
   uid: user.uid,
@@ -16,21 +28,58 @@ const toSessionUser = (user: User): SessionUser => ({
   username: user.username,
 });
 
-const getTodayIsoDate = (): IsoDate => new Date().toLocaleDateString('en-CA') as IsoDate;
+export const getErrorMessage = (error: unknown): string => (
+  error instanceof Error ? error.message : 'Something went wrong. Try again.'
+);
 
-export const checkCredentials = (username: string, password: string): SessionUser | null => {
-  const user = getUserByUsername(username.trim());
+export const getSessionUser = async (uid: string): Promise<SessionUser | null> => {
+  const snapshot = await getDoc(doc(FirebaseDB, 'users', uid));
+  if (!snapshot.exists()) return null;
 
-  if (!user) return null;
-
-  const credential = credentials.find((item) => item.uid === user.uid && item.password === password);
-
-  if (!credential) return null;
-
-  return toSessionUser(user);
+  return toSessionUser(snapshot.data() as User);
 };
 
-export const registerUser = (data: RegisterData): SessionUser => {
+const getEmailByUsername = async (username: string): Promise<string | null> => {
+  const snapshot = await getDoc(doc(FirebaseDB, 'usernames', username.toLowerCase()));
+  if (!snapshot.exists()) return null;
+
+  return snapshot.data().email as string;
+};
+
+const createProfile = async (user: User): Promise<void> => {
+  const usernameRef = doc(FirebaseDB, 'usernames', user.username.toLowerCase());
+  const userRef = doc(FirebaseDB, 'users', user.uid);
+
+  await runTransaction(FirebaseDB, async (transaction) => {
+    const usernameSnapshot = await transaction.get(usernameRef);
+    if (usernameSnapshot.exists()) {
+      throw new Error('That username is already taken.');
+    }
+
+    transaction.set(usernameRef, { uid: user.uid, email: user.email });
+    transaction.set(userRef, user);
+  });
+};
+
+export const loginWithUsername = async (
+  username: string,
+  password: string,
+): Promise<SessionUser> => {
+  const email = await getEmailByUsername(username.trim());
+  if (!email) throw new Error('Incorrect username or password.');
+
+  const credential = await signInWithEmailAndPassword(FirebaseAuth, email, password);
+  const sessionUser = await getSessionUser(credential.user.uid);
+
+  if (!sessionUser) {
+    await signOut(FirebaseAuth);
+    throw new Error('This account has no profile.');
+  }
+
+  return sessionUser;
+};
+
+export const registerUser = async (data: RegisterData): Promise<SessionUser> => {
   const fullName = data.fullName.trim();
   const username = data.username.trim();
   const email = data.email.trim().toLowerCase();
@@ -39,24 +88,73 @@ export const registerUser = (data: RegisterData): SessionUser => {
   if (!usernamePattern.test(username)) {
     throw new Error('Username must have 4 to 15 letters, numbers or underscores.');
   }
-  if (data.password.length < MIN_PASSWORD_LENGTH) {
-    throw new Error(`Password must have at least ${MIN_PASSWORD_LENGTH} characters.`);
-  }
   if (!data.dateOfBirth) throw new Error('Date of birth is required.');
-  if (getUserByUsername(username)) throw new Error('That username is already taken.');
-  if (getUserByEmail(email)) throw new Error('That email is already registered.');
+  if (data.photo) {
+    const photoError = getFileError(data.photo, false);
+    if (photoError) throw new Error(photoError);
+  }
+  if (await getEmailByUsername(username)) throw new Error('That username is already taken.');
+
+  const credential = await createUserWithEmailAndPassword(FirebaseAuth, email, data.password);
+  let photoURL = '';
+
+  try {
+    if (data.photo) {
+      photoURL = await uploadFile(`avatars/${credential.user.uid}`, data.photo);
+    }
+
+    const newUser: User = {
+      uid: credential.user.uid,
+      fullName,
+      username,
+      email,
+      dateOfBirth: data.dateOfBirth,
+      dateOfRegistration: getTodayIsoDate(),
+      ...(photoURL ? { photoURL } : {}),
+    };
+
+    await createProfile(newUser);
+    return toSessionUser(newUser);
+  } catch (error) {
+    if (photoURL) await deleteFile(photoURL);
+    await deleteUser(credential.user);
+    throw error;
+  }
+};
+
+const buildGoogleUsername = (firebaseUser: FirebaseUser): string => {
+  const emailName = (firebaseUser.email ?? 'user').split('@')[0];
+  const base = emailName.replace(/\W/g, '').slice(0, 10) || 'user';
+  const suffix = Math.floor(1000 + Math.random() * 9000);
+  return `${base}${suffix}`;
+};
+
+export const loginWithGoogle = async (): Promise<SessionUser> => {
+  const credential = await signInWithPopup(FirebaseAuth, new GoogleAuthProvider());
+  const firebaseUser = credential.user;
+
+  const existingUser = await getSessionUser(firebaseUser.uid);
+  if (existingUser) return existingUser;
 
   const newUser: User = {
-    uid: crypto.randomUUID(),
-    fullName,
-    username,
-    email,
-    dateOfBirth: data.dateOfBirth,
+    uid: firebaseUser.uid,
+    fullName: firebaseUser.displayName ?? 'Homies user',
+    username: buildGoogleUsername(firebaseUser),
+    email: firebaseUser.email ?? '',
     dateOfRegistration: getTodayIsoDate(),
+    ...(firebaseUser.photoURL ? { photoURL: firebaseUser.photoURL } : {}),
   };
 
-  addUser(newUser);
-  credentials = [...credentials, { uid: newUser.uid, email, password: data.password }];
+  try {
+    await createProfile(newUser);
+  } catch (error) {
+    await signOut(FirebaseAuth);
+    throw error;
+  }
 
   return toSessionUser(newUser);
+};
+
+export const logoutUser = async (): Promise<void> => {
+  await signOut(FirebaseAuth);
 };

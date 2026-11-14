@@ -1,50 +1,67 @@
 import { useEffect, useState } from 'react';
-import type { User } from '../types/user.types';
-import { followUser, getFollowers, getFollowings, getFollowingsUids, unfollowUser } from '../services/userService';
-import { getUserByUsername } from '../services/userService';
+import type { Unsubscribe } from 'firebase/firestore';
 
-export const useUserProfile = (username: string, myUid: string) => {
+import {
+  getUidByUsername,
+  subscribeToFollowers,
+  subscribeToFollowing,
+  subscribeToUser,
+} from '../services/userService';
+import type { User, UserSummary } from '../types/user.types';
+
+export const useUserProfile = (username: string) => {
   const [profileUser, setProfileUser] = useState<User | null>(null);
-  const [followersCount, setFollowersCount] = useState(0);
-  const [followingCount, setFollowingCount] = useState(0);
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [followers, setFollowers] = useState<UserSummary[]>([]);
+  const [following, setFollowing] = useState<UserSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    const user = getUserByUsername(username);
-    setProfileUser(user);
+    let isActive = true;
+    let unsubscribers: Unsubscribe[] = [];
 
-    if (user) {
-      setFollowersCount(getFollowers(user.uid).length);
-      setFollowingCount(getFollowings(user.uid).length);
-      setIsFollowing(getFollowingsUids(myUid).includes(user.uid));
-    }
+    setIsLoading(true);
+    setFollowers([]);
+    setFollowing([]);
 
-    setIsLoading(false);
-  }, [username, myUid, reloadKey]);
+    const finishWithoutUser = () => {
+      setProfileUser(null);
+      setIsLoading(false);
+    };
 
-  const reload = () => {
-    setReloadKey((key) => key + 1);
+    getUidByUsername(username)
+      .then((uid) => {
+        if (!isActive) return;
+
+        if (!uid) {
+          finishWithoutUser();
+          return;
+        }
+
+        unsubscribers = [
+          subscribeToUser(uid, (user) => {
+            setProfileUser(user);
+            setIsLoading(false);
+          }),
+          subscribeToFollowers(uid, setFollowers),
+          subscribeToFollowing(uid, setFollowing),
+        ];
+      })
+      .catch(() => {
+        if (isActive) finishWithoutUser();
+      });
+
+    return () => {
+      isActive = false;
+      unsubscribers.forEach((unsubscribe) => unsubscribe());
+    };
+  }, [username]);
+
+  return {
+    profileUser,
+    followers,
+    following,
+    followersCount: followers.length,
+    followingCount: following.length,
+    isLoading,
   };
-
-  const follow = () => {
-    if (!profileUser) {
-      return;
-    }
-
-    followUser(myUid, profileUser.uid);
-    reload();
-  };
-
-  const unfollow = () => {
-    if (!profileUser) {
-      return;
-    }
-
-    unfollowUser(myUid, profileUser.uid);
-    reload();
-  };
-
-  return { profileUser, followersCount, followingCount, isFollowing, isLoading, follow, unfollow };
 };

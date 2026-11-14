@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
+import avatarIcon from '../../assets/avatar.svg';
 import type { IsoDate } from '../../shared/utils/formatDate';
 import { MIN_PASSWORD_LENGTH } from '../services/authService';
 import type { RegisterData } from '../types/auth.types';
 
 interface RegisterFormProps {
+  isSubmitting: boolean;
   onSubmit: (data: RegisterData) => void;
 }
 
@@ -18,11 +20,23 @@ const initialForm = {
 
 type FormField = keyof typeof initialForm;
 
-export const RegisterForm = ({ onSubmit }: RegisterFormProps) => {
+export const RegisterForm = ({ isSubmitting, onSubmit }: RegisterFormProps) => {
   const [form, setForm] = useState(initialForm);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState('');
+  const photoInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => () => {
+    if (photoPreview) URL.revokeObjectURL(photoPreview);
+  }, [photoPreview]);
 
   const handleChange = (field: FormField, value: string) => {
     setForm((current) => ({ ...current, [field]: value }));
+  };
+
+  const handlePhotoChange = (file: File | null) => {
+    setPhoto(file);
+    setPhotoPreview(file ? URL.createObjectURL(file) : '');
   };
 
   return (
@@ -30,9 +44,59 @@ export const RegisterForm = ({ onSubmit }: RegisterFormProps) => {
       className="auth-form"
       onSubmit={(event) => {
         event.preventDefault();
-        onSubmit({ ...form, dateOfBirth: form.dateOfBirth as IsoDate });
+        onSubmit({
+          ...form,
+          dateOfBirth: form.dateOfBirth as IsoDate,
+          ...(photo ? { photo } : {}),
+        });
       }}
     >
+      <div className="auth-form__photo">
+        {photoPreview ? (
+          <img src={photoPreview} alt="Profile preview" />
+        ) : (
+          <img className="avatar-placeholder" src={avatarIcon} alt="" />
+        )}
+
+        <div className="auth-form__photo-info">
+          <span className="auth-form__photo-label">Profile photo (optional)</span>
+
+          <div className="auth-form__photo-actions">
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              aria-label="Profile photo"
+              hidden
+              onChange={(event) => {
+                const input = event.currentTarget;
+                handlePhotoChange(input.files?.[0] ?? null);
+                input.value = '';
+              }}
+            />
+
+            <button
+              type="button"
+              className="auth-form__select-photo"
+              onClick={() => photoInputRef.current?.click()}
+            >
+              {photo ? 'Change photo' : 'Select photo'}
+            </button>
+
+            {photo && (
+              <button
+                type="button"
+                className="auth-form__remove-photo"
+                aria-label="Remove photo"
+                onClick={() => handlePhotoChange(null)}
+              >
+                <span className="tweet-icon tweet-icon--trash" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       <label htmlFor="register-full-name">
         Full name
         <input
@@ -93,7 +157,9 @@ export const RegisterForm = ({ onSubmit }: RegisterFormProps) => {
         />
       </label>
 
-      <button type="submit">Create account</button>
+      <button type="submit" disabled={isSubmitting}>
+        {isSubmitting ? 'Creating account...' : 'Create account'}
+      </button>
     </form>
   );
 };

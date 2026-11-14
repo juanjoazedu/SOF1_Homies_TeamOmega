@@ -2,22 +2,35 @@ import { useContext } from 'react';
 
 import { AuthContext } from '../../auth/contexts/AuthContext';
 import { AppRouter } from '../../routes/AppRouter';
+import { UsersProvider } from '../../users/contexts/UsersProvider';
+import { UserSearchPanel } from '../../users/components/UserSearchPanel';
+import { TweetsProvider } from '../../tweets/contexts/TweetsProvider';
 import { Header } from './Header';
 
 export const AppLayout = () => {
   const { authState } = useContext(AuthContext);
-  const isAuthenticated = authState.status === 'authenticated';
 
-  if (!isAuthenticated) {
+  if (authState.status === 'checking') {
+    return <p className="page-status">Loading...</p>;
+  }
+
+  if (authState.status !== 'authenticated') {
     return <AppRouter />;
   }
 
   return (
-    <div className="app-layout">
-      <Header />
-      <main className="app-content">
-        <AppRouter />
-      </main>
-    </div>
+    <UsersProvider key={authState.sessionUser.uid}>
+      <TweetsProvider>
+        <div className="app-layout">
+          <Header />
+          <main className="app-content">
+            <AppRouter />
+          </main>
+          <aside className="app-aside">
+            <UserSearchPanel />
+          </aside>
+        </div>
+      </TweetsProvider>
+    </UsersProvider>
   );
 };

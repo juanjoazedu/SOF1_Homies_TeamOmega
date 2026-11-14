@@ -1,10 +1,12 @@
 import { Link } from 'react-router-dom';
 
-import type { User } from '../types/user.types';
+import type { UserSummary } from '../types/user.types';
 import { FollowButton } from './FollowButton';
 
+import avatarIcon from '../../assets/avatar.svg';
+
 interface UserCardProps {
-  user: User;
+  user: UserSummary;
   showFollowButton: boolean;
   isFollowing: boolean;
   onFollow: () => void;
@@ -24,15 +26,9 @@ export const UserCard = ({
     <article className="user-card">
       <Link className="user-card__avatar-link" to={profileUrl}>
         {user.photoURL ? (
-          <img src={user.photoURL} alt={`Photo of ${user.fullName}`} />
+          <img src={user.photoURL} alt={user.fullName} referrerPolicy="no-referrer" />
         ) : (
-          <div
-            className="user-card__avatar"
-            role="img"
-            aria-label={`Photo of ${user.fullName}`}
-          >
-            Without photo
-          </div>
+          <img className="avatar-placeholder" src={avatarIcon} alt={user.fullName} />
         )}
       </Link>
 

@@ -1,30 +1,21 @@
-import { useCallback, useContext, useState } from 'react';
+import { useState } from 'react';
 
-import { AuthContext } from '../../auth/contexts/AuthContext';
 import { usePagination } from '../../shared/hooks/usePagination';
 import { Pagination } from '../../ui/components/Pagination';
 import { FeedTabs, type FeedTab } from '../components/FeedTabs';
 import { TweetList } from '../components/TweetList';
-import { useTweetList } from '../hooks/useTweetList';
-import { getFollowingTweets, getTweetsForYou } from '../services/tweetService';
+import { useTweets } from '../hooks/useTweets';
 
 export const FeedPage = () => {
-  const { authState } = useContext(AuthContext);
-  const uid = authState.status === 'authenticated' ? authState.sessionUser.uid : '';
+  const [activeTab, setActiveTab] = useState<FeedTab>('for-you');
 
-  const [activeTab, setActiveTab] = useState<FeedTab>('following');
-
-  const loadFeed = useCallback(
-    () => (activeTab === 'for-you' ? getTweetsForYou(uid) : getFollowingTweets(uid)),
-    [activeTab, uid],
-  );
   const {
-    tweets,
+    items,
     isLoading,
     like,
     retweet,
-  } = useTweetList(loadFeed, uid);
-  const pagination = usePagination(tweets);
+  } = useTweets(activeTab);
+  const pagination = usePagination(items);
 
   const changeTab = (tab: FeedTab) => {
     setActiveTab(tab);
@@ -40,17 +31,17 @@ export const FeedPage = () => {
       <FeedTabs activeTab={activeTab} onChange={changeTab} />
 
       {isLoading ? (
-        <p>Loading tweets...</p>
+        <p className="page-status">Loading tweets...</p>
       ) : (
         <TweetList
-          tweets={pagination.items}
+          items={pagination.items}
           onLike={like}
           onRetweet={retweet}
           emptyMessage={emptyMessage}
         />
       )}
 
-      {!isLoading && tweets.length > 0 && (
+      {!isLoading && items.length > 0 && (
         <Pagination
           label="Feed pagination"
           currentPage={pagination.currentPage}
