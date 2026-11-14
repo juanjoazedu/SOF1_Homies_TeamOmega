@@ -15,25 +15,39 @@ import {
   logoutUser,
   registerUser,
 } from '../services/authService';
+import { clearSession, getStoredSession, saveSession } from '../services/localSession';
 import type { AuthState, RegisterData, SessionUser } from '../types/auth.types';
 import { AuthContext } from './AuthContext';
 
-const initialState: AuthState = { status: 'checking' };
+const getInitialState = (): AuthState => {
+  const sessionUser = getStoredSession();
+  return sessionUser ? { status: 'authenticated', sessionUser } : { status: 'checking' };
+};
 
 interface AuthProviderProps {
   children: ReactNode;
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [authState, dispatch] = useReducer(authReducer, initialState);
+  const [authState, dispatch] = useReducer(authReducer, undefined, getInitialState);
   const isAuthActionRunning = useRef(false);
+
+  const startSession = (sessionUser: SessionUser) => {
+    saveSession(sessionUser);
+    dispatch({ type: 'login', sessionUser });
+  };
+
+  const endSession = () => {
+    clearSession();
+    dispatch({ type: 'logout' });
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(FirebaseAuth, async (firebaseUser) => {
       if (isAuthActionRunning.current) return;
 
       if (!firebaseUser) {
-        dispatch({ type: 'logout' });
+        endSession();
         return;
       }
 
@@ -41,12 +55,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const sessionUser = await getSessionUser(firebaseUser.uid);
 
         if (sessionUser) {
-          dispatch({ type: 'login', sessionUser });
+          startSession(sessionUser);
         } else {
-          dispatch({ type: 'logout' });
+          await logoutUser();
         }
       } catch {
-        dispatch({ type: 'logout' });
+        if (!getStoredSession()) endSession();
       }
     });
 
@@ -57,8 +71,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     isAuthActionRunning.current = true;
 
     try {
-      const sessionUser = await action();
-      dispatch({ type: 'login', sessionUser });
+      startSession(await action());
     } finally {
       isAuthActionRunning.current = false;
     }
