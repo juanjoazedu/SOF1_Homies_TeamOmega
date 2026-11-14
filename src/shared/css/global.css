@@ -134,7 +134,8 @@ body {
   font-weight: 600;
 }
 
-.auth-form input {
+.auth-form input,
+.auth-form textarea {
   width: 100%;
   box-sizing: border-box;
   padding: 12px;
@@ -148,7 +149,8 @@ body {
   transition: border-color 0.2s ease;
 }
 
-.auth-form input:focus {
+.auth-form input:focus,
+.auth-form textarea:focus {
   outline: none;
   border-color: var(--action-accept);
 }
@@ -176,7 +178,7 @@ body {
   outline-offset: 2px;
 }
 
-/* Register profile photo */
+/* Profile photo picker (register and edit profile) */
 .auth-form__photo {
   display: flex;
   align-items: center;
@@ -196,40 +198,94 @@ body {
   object-fit: contain;
 }
 
-.auth-form__photo label {
-  flex: 1;
+.auth-form__photo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   min-width: 0;
 }
 
-.auth-form .auth-form__photo input {
-  padding: 8px;
+.auth-form__photo-label {
+  color: var(--text-secondary);
   font-size: 14px;
-}
-
-.auth-form__photo input::file-selector-button {
-  margin-right: 12px;
-  padding: 6px 14px;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-  font-family: var(--font-family);
   font-weight: 600;
-  cursor: pointer;
 }
 
-.auth-form .auth-form__remove-photo {
+.auth-form__photo-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.auth-form .auth-form__select-photo {
   margin-top: 0;
   padding: 6px 14px;
   border: 1px solid var(--border-color);
   background-color: var(--bg-surface);
   color: var(--text-primary);
   font-size: 14px;
+  font-weight: 600;
+}
+
+.auth-form .auth-form__select-photo:hover {
+  background-color: var(--bg-elevated);
+}
+
+.auth-form .auth-form__remove-photo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-top: 0;
+  padding: 0;
+  border-radius: 50%;
+  background-color: transparent;
+  color: var(--text-secondary);
 }
 
 .auth-form .auth-form__remove-photo:hover {
   background-color: var(--button-danger-hover-border);
   color: var(--action-danger);
+}
+
+/* Edit profile form (reuses .auth-form fields) */
+.auth-form textarea {
+  min-height: 88px;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.profile-form__counter {
+  align-self: flex-end;
+}
+
+.profile-form__footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.auth-form .profile-form__footer button {
+  margin-top: 0;
+  padding: 8px 20px;
+  font-size: 15px;
+}
+
+.auth-form .profile-form__footer button:disabled {
+  background-color: var(--text-muted);
+  cursor: not-allowed;
+}
+
+.auth-form .profile-form__cancel {
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.auth-form .profile-form__cancel:hover {
+  background-color: var(--bg-elevated);
 }
 
 .auth-container p[role="alert"] {
@@ -931,57 +987,6 @@ img.avatar-placeholder {
 .profile-header>div:first-child>img.avatar-placeholder {
   background-color: var(--bg-elevated);
   object-fit: contain;
-}
-
-.auth-form__photo-info {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.auth-form__photo-label {
-  color: var(--text-secondary);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.auth-form__photo-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.auth-form .auth-form__select-photo {
-  margin-top: 0;
-  padding: 6px 14px;
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.auth-form .auth-form__select-photo:hover {
-  background-color: var(--bg-elevated);
-}
-
-.auth-form .auth-form__remove-photo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  margin-top: 0;
-  padding: 0;
-  border-radius: 50%;
-  background-color: transparent;
-  color: var(--text-secondary);
-}
-
-.auth-form .auth-form__remove-photo:hover {
-  background-color: var(--button-danger-hover-border);
-  color: var(--action-danger);
 }
 
 .tweet-card__body {

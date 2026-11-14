@@ -7,4 +7,5 @@ export const UsersContext = createContext<UsersContextValue>({
   followingUids: [],
   follow: async () => {},
   unfollow: async () => {},
+  updateProfile: async () => {},
 });
