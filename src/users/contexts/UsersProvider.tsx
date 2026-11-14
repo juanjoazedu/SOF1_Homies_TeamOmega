@@ -11,8 +11,9 @@ import {
   subscribeToFollowing,
   subscribeToUser,
   unfollowUser,
+  updateUserProfile,
 } from '../services/userService';
-import type { User, UserSummary } from '../types/user.types';
+import type { ProfileUpdate, User, UserSummary } from '../types/user.types';
 import { UsersContext } from './UsersContext';
 
 interface UsersProviderProps {
@@ -49,12 +50,18 @@ export const UsersProvider = ({ children }: UsersProviderProps) => {
     await unfollowUser(uid, targetUid);
   };
 
+  const updateProfile = async (changes: ProfileUpdate) => {
+    if (!currentUser) return;
+    await updateUserProfile(currentUser, changes);
+  };
+
   return (
     <UsersContext.Provider value={{
       currentUser,
       followingUids,
       follow,
       unfollow,
+      updateProfile,
     }}
     >
       {children}
