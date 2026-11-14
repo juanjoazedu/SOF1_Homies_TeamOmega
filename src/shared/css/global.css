@@ -73,7 +73,6 @@ body {
 .feed-container,
 .profile-container,
 .followers-container,
-.new-tweet-container,
 .tweet-detail-container {
   width: 100%;
   min-height: 100vh;
@@ -194,15 +193,6 @@ body {
 
 .auth-container__switch a:hover {
   text-decoration: underline;
-}
-
-.auth-container p[role="status"] {
-  margin: 0;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background-color: var(--bg-elevated);
-  color: var(--text-secondary);
-  font-size: 14px;
 }
 
 .auth-container__divider {
@@ -421,10 +411,6 @@ body {
 }
 
 /* Users list styles */
-.followers-container h3 {
-  margin: 10px 20px;
-}
-
 .user-list {
   list-style: none;
   padding: 0;
@@ -665,25 +651,6 @@ body {
   color: var(--text-secondary);
 }
 
-/* New tweet page styles */
-.new-tweet-container p[role="status"],
-.new-tweet-container p[role="alert"] {
-  margin: 0 20px 16px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 14px;
-}
-
-.new-tweet-container p[role="status"] {
-  background-color: var(--bg-elevated);
-  color: var(--action-accept);
-}
-
-.new-tweet-container p[role="alert"] {
-  background-color: var(--button-danger-hover-border);
-  color: var(--action-danger);
-}
-
 /* Tweet form styles */
 .tweet-form {
   display: flex;
@@ -761,6 +728,16 @@ body {
 .tweet-form button:disabled {
   background-color: var(--text-muted);
   cursor: not-allowed;
+}
+
+.tweet-form .tweet-form__cancel {
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-surface);
+  color: var(--text-primary);
+}
+
+.tweet-form .tweet-form__cancel:hover {
+  background-color: var(--bg-elevated);
 }
 
 /* Tweet card styles */
@@ -932,6 +909,22 @@ img.avatar-placeholder {
   color: var(--action-accept);
 }
 
+.tweet-card__actions .tweet-card__delete:hover {
+  background-color: var(--button-danger-hover-border);
+  color: var(--action-danger);
+}
+
+/* Error messages */
+.tweet-card__error,
+.modal__error {
+  margin: 10px 0 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background-color: var(--button-danger-hover-border);
+  color: var(--action-danger);
+  font-size: 14px;
+}
+
 /* Tweet icons */
 .tweet-icon {
   display: inline-block;
@@ -987,13 +980,7 @@ img.avatar-placeholder {
   text-align: center;
 }
 
-/* Tweet card */
-.tweet-card__actions .tweet-card__delete:hover {
-  background-color: var(--button-danger-hover-border);
-  color: var(--action-danger);
-}
-
-/* Confirm modal styles */
+/* Modal styles */
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -1018,20 +1005,29 @@ img.avatar-placeholder {
   color: var(--text-primary);
 }
 
+.modal--large {
+  width: min(100%, 560px);
+}
+
 .modal__title {
   font-size: 20px;
   font-weight: 800;
   letter-spacing: -0.02em;
 }
 
-.modal__message {
+.modal__description {
   margin: 0 0 12px;
   color: var(--text-secondary);
   font-size: 15px;
   line-height: 1.4;
 }
 
-.modal button {
+.modal .tweet-form {
+  padding: 0;
+}
+
+.modal__confirm,
+.modal__cancel {
   padding: 12px 20px;
   border-radius: 999px;
   font-family: var(--font-family);
@@ -1041,23 +1037,33 @@ img.avatar-placeholder {
   transition: background-color 0.2s ease;
 }
 
-.modal button:focus-visible {
+.modal__confirm:focus-visible,
+.modal__cancel:focus-visible {
   outline: 2px solid var(--action-accept);
   outline-offset: 2px;
 }
 
-.modal button:disabled {
+.modal__confirm:disabled,
+.modal__cancel:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
 .modal__confirm {
   border: none;
-  background-color: var(--action-danger);
+  background-color: var(--action-primary);
   color: var(--text-on-color);
 }
 
 .modal__confirm:hover:not(:disabled) {
+  background-color: var(--action-primary-hover);
+}
+
+.modal__confirm--danger {
+  background-color: var(--action-danger);
+}
+
+.modal__confirm--danger:hover:not(:disabled) {
   background-color: var(--action-danger-hover);
 }
 
@@ -1071,86 +1077,19 @@ img.avatar-placeholder {
   background-color: var(--bg-elevated);
 }
 
-.tweet-card__confirm {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 10px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background-color: var(--button-danger-hover-border);
-  color: var(--action-danger);
-  font-size: 14px;
-  cursor: default;
-}
-
-.tweet-card__confirm p {
-  margin: 0;
-}
-
-.tweet-card__confirm div {
-  display: flex;
-  gap: 8px;
-}
-
-.tweet-card__confirm button {
-  padding: 6px 14px;
+/* Toast */
+.toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 110;
+  padding: 12px 20px;
   border-radius: 999px;
-  font-family: var(--font-family);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.tweet-card__confirm button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.tweet-card__confirm-cancel {
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-}
-
-.tweet-card__confirm-cancel:hover {
-  background-color: var(--bg-elevated);
-}
-
-.tweet-card__confirm-delete {
-  border: none;
-  background-color: var(--action-danger);
+  background-color: var(--action-primary);
   color: var(--text-on-color);
-}
-
-.tweet-card__confirm-delete:hover {
-  background-color: var(--action-danger-hover);
-}
-
-.tweet-card__error {
-  margin: 10px 0 0;
-  padding: 10px 14px;
-  border-radius: 10px;
-  background-color: var(--button-danger-hover-border);
-  color: var(--action-danger);
-  font-size: 14px;
-}
-
-.tweet-card__body .tweet-form {
-  padding: 8px 0 0;
-}
-
-.tweet-form .tweet-form__cancel {
-  border: 1px solid var(--border-color);
-  background-color: var(--bg-surface);
-  color: var(--text-primary);
-}
-
-.tweet-form .tweet-form__cancel:hover {
-  background-color: var(--bg-elevated);
+  font-size: 15px;
+  font-weight: 600;
 }
 
 /* Feed styles */
@@ -1247,8 +1186,7 @@ img.avatar-placeholder {
   background-color: var(--bg-elevated);
 }
 
-.app-header__logo img,
-.app-header__logo svg {
+.app-header__logo img {
   width: 32px;
   height: 32px;
 }
@@ -1284,16 +1222,6 @@ img.avatar-placeholder {
   outline-offset: 2px;
 }
 
-.app-header__link--active {
-  font-weight: 700;
-}
-
-.app-header__icon {
-  width: 26px;
-  height: 26px;
-  flex-shrink: 0;
-}
-
 .app-header__post {
   display: flex;
   align-items: center;
@@ -1305,9 +1233,9 @@ img.avatar-placeholder {
   border-radius: 999px;
   background-color: var(--action-primary);
   color: var(--text-on-color);
+  font-family: var(--font-family);
   font-size: 17px;
   font-weight: 700;
-  text-decoration: none;
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
@@ -1361,39 +1289,6 @@ img.avatar-placeholder {
 
 .app-header__user p {
   color: var(--text-secondary);
-}
-
-.app-header__avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--avatar-bg);
-  object-fit: cover;
-  flex-shrink: 0;
-}
-
-.app-header__user-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  flex: 1;
-}
-
-.app-header__user-name {
-  overflow: hidden;
-  color: var(--text-primary);
-  font-size: 15px;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.app-header__user-handle {
-  overflow: hidden;
-  color: var(--text-secondary);
-  font-size: 15px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 /* Logout button */

@@ -59,9 +59,9 @@ export type TweetDocument = Omit<Tweet, 'id' | 'createdAt'> & { createdAt: Times
 export interface TweetsContextValue {
   likedTweetIds: string[];
   retweetedTweetIds: string[];
-  publish: (contentText: string, media?: TweetMedia[]) => Promise<void>;
   toggleLike: (tweetId: string) => Promise<void>;
   toggleRetweet: (tweetId: string) => Promise<void>;
-  editTweet: (tweetId: string, contentText: string) => Promise<void>;
   removeTweet: (tweetId: string) => Promise<void>;
+  openComposer: () => void;
+  openEditor: (tweet: Tweet) => void;
 }

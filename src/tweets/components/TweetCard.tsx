@@ -9,11 +9,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import avatarIcon from '../../assets/avatar.svg';
 import { AuthContext } from '../../auth/contexts/AuthContext';
 import { formatDate } from '../../shared/utils/formatDate';
-import type { UserSummary } from '../../users/types/user.types';
 import { ConfirmModal } from '../../ui/components/ConfirmModal';
+import type { UserSummary } from '../../users/types/user.types';
 import { TweetsContext } from '../contexts/TweetsContext';
 import type { TweetView } from '../types/tweet.types';
-import { TweetForm } from './TweetForm';
 
 interface TweetCardProps {
   tweet: TweetView;
@@ -32,10 +31,8 @@ export const TweetCard = ({
 }: TweetCardProps) => {
   const navigate = useNavigate();
   const { authState } = useContext(AuthContext);
-  const { editTweet, removeTweet } = useContext(TweetsContext);
+  const { removeTweet, openEditor } = useContext(TweetsContext);
 
-  const [isEditing, setIsEditing] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
   const [isConfirmingDelete, setIsConfirmingDelete] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -76,21 +73,7 @@ export const TweetCard = ({
   const handleStartEdit = (event: MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     setErrorMessage('');
-    setIsEditing(true);
-  };
-
-  const handleEdit = async (text: string) => {
-    setIsSaving(true);
-
-    try {
-      await editTweet(tweet.id, text);
-      setErrorMessage('');
-      setIsEditing(false);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Could not edit the tweet.');
-    } finally {
-      setIsSaving(false);
-    }
+    openEditor(tweet);
   };
 
   const handleAskDelete = (event: MouseEvent<HTMLButtonElement>) => {
@@ -176,20 +159,7 @@ export const TweetCard = ({
           {tweet.isEdited && ' (edited)'}
         </p>
 
-        {isEditing ? (
-          <div onClick={(event) => event.stopPropagation()}>
-            <TweetForm
-              initialText={tweet.contentText}
-              submitLabel="Save"
-              submittingLabel="Saving..."
-              isSubmitting={isSaving}
-              onSubmit={handleEdit}
-              onCancel={() => setIsEditing(false)}
-            />
-          </div>
-        ) : (
-          <p className="tweet-card__content">{tweet.contentText}</p>
-        )}
+        <p className="tweet-card__content">{tweet.contentText}</p>
 
         {tweet.media && (
           <div className="tweet-card__media">
@@ -229,7 +199,7 @@ export const TweetCard = ({
             {tweet.retweetsCount}
           </button>
 
-          {isOwner && !isEditing && (
+          {isOwner && (
             <>
               <button type="button" aria-label="Edit tweet" onClick={handleStartEdit}>
                 <span className="tweet-icon tweet-icon--edit" aria-hidden="true" />
@@ -252,6 +222,7 @@ export const TweetCard = ({
             message="This can't be undone and it will be removed from your profile and from the feed of the people who follow you."
             confirmLabel="Delete"
             processingLabel="Deleting..."
+            variant="danger"
             isProcessing={isDeleting}
             onConfirm={handleConfirmDelete}
             onCancel={handleCancelDelete}

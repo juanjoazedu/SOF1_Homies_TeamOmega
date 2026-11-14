@@ -47,6 +47,7 @@ export const TweetForm = ({
         onChange={(event) => setText(event.target.value)}
         rows={4}
         placeholder="What is happening?"
+        autoFocus
       />
 
       <div className="tweet-form__footer">
