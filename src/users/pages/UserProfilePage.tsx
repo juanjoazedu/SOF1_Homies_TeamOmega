@@ -60,7 +60,7 @@ export const UserProfilePage = () => {
       <header className="profile-header">
         <div>
           {profileUser.photoURL ? (
-            <img src={profileUser.photoURL} alt={profileUser.fullName} />
+            <img src={profileUser.photoURL} alt={profileUser.fullName} referrerPolicy="no-referrer" />
           ) : (
             <img className="avatar-placeholder" src={avatarIcon} alt={profileUser.fullName} />
           )}

@@ -135,6 +135,7 @@ export const TweetCard = ({
           className="tweet-card__avatar avatar-placeholder"
           src={avatarIcon}
           alt={tweet.authorFullName}
+          referrerPolicy="no-referrer"
         />
       </Link>
 

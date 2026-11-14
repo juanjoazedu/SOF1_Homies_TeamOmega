@@ -26,7 +26,7 @@ export const UserCard = ({
     <article className="user-card">
       <Link className="user-card__avatar-link" to={profileUrl}>
         {user.photoURL ? (
-          <img src={user.photoURL} alt={user.fullName} />
+          <img src={user.photoURL} alt={user.fullName} referrerPolicy="no-referrer" />
         ) : (
           <img className="avatar-placeholder" src={avatarIcon} alt={user.fullName} />
         )}
