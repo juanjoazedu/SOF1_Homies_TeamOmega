@@ -3,6 +3,7 @@ import { useContext } from 'react';
 import { AuthContext } from '../../auth/contexts/AuthContext';
 import { AppRouter } from '../../routes/AppRouter';
 import { UsersProvider } from '../../users/contexts/UsersProvider';
+import { UserSearchPanel } from '../../users/components/UserSearchPanel';
 import { TweetsProvider } from '../../tweets/contexts/TweetsProvider';
 import { Header } from './Header';
 
@@ -25,6 +26,9 @@ export const AppLayout = () => {
           <main className="app-content">
             <AppRouter />
           </main>
+          <aside className="app-aside">
+            <UserSearchPanel />
+          </aside>
         </div>
       </TweetsProvider>
     </UsersProvider>
