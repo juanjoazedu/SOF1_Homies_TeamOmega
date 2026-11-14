@@ -29,7 +29,6 @@
   /* Layout */
   --content-width: 600px;
   --sidebar-width: 275px;
-  --bottom-bar-height: 0px;
 
 }
 
@@ -40,11 +39,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 body {
+  min-width: 768px;
+  min-height: 100vh;
+  margin: 0;
   background-color: var(--bg-app);
   color: var(--text-primary);
   font-family: var(--font-family);
-  min-height: 100vh;
-  margin: 0;
 }
 
 #root {
@@ -77,7 +77,6 @@ body {
 .tweet-detail-container {
   width: 100%;
   min-height: 100vh;
-  padding-bottom: var(--bottom-bar-height);
   box-sizing: border-box;
   border-left: 1px solid var(--border-color);
   border-right: 1px solid var(--border-color);
@@ -479,19 +478,6 @@ body {
   color: var(--text-secondary);
 }
 
-.user-card__avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background-color: var(--avatar-bg);
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  text-align: center;
-}
-
 .user-card__avatar-link {
   display: block;
   flex-shrink: 0;
@@ -820,19 +806,43 @@ body {
   flex-shrink: 0;
 }
 
-.tweet-card__avatar--empty {
-  background-color: var(--avatar-bg);
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  text-align: center;
+img.avatar-placeholder {
+  box-sizing: border-box;
+  padding: 0;
+  border-radius: 50%;
+  background-color: var(--bg-elevated);
+  object-fit: contain;
+  object-position: center bottom;
+}
+
+.profile-header > div:first-child > img.avatar-placeholder {
+  background-color: var(--bg-elevated);
+  object-fit: contain;
 }
 
 .tweet-card__body {
   min-width: 0;
   flex: 1;
+}
+
+/* Line above retweeted */
+.tweet-card__retweeted-by {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 4px;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tweet-card__retweeted-by a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.tweet-card__retweeted-by a:hover {
+  text-decoration: underline;
 }
 
 .tweet-card__header {
@@ -895,6 +905,9 @@ body {
 }
 
 .tweet-card__actions button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 4px 10px;
   border: none;
   border-radius: 999px;
@@ -919,6 +932,46 @@ body {
   color: var(--action-accept);
 }
 
+/* Tweet icons */
+.tweet-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  background-color: currentColor;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.tweet-icon--heart {
+  -webkit-mask-image: url('../../assets/heart.svg');
+  mask-image: url('../../assets/heart.svg');
+}
+
+.tweet-icon--retweet {
+  -webkit-mask-image: url('../../assets/retweet.svg');
+  mask-image: url('../../assets/retweet.svg');
+}
+
+.tweet-icon--edit {
+  -webkit-mask-image: url('../../assets/edit.svg');
+  mask-image: url('../../assets/edit.svg');
+}
+
+.tweet-icon--trash {
+  -webkit-mask-image: url('../../assets/trash.svg');
+  mask-image: url('../../assets/trash.svg');
+}
+
+.tweet-card__retweeted-by .tweet-icon {
+  width: 16px;
+  height: 16px;
+}
+
 /* Tweet list styles */
 .tweet-list {
   list-style: none;
@@ -934,7 +987,7 @@ body {
   text-align: center;
 }
 
-/* Tweet card: owner actions, delete confirmation and inline edit */
+/* Tweet card */
 .tweet-card__actions .tweet-card__delete:hover {
   background-color: var(--button-danger-hover-border);
   color: var(--action-danger);
@@ -1078,7 +1131,7 @@ body {
   border-radius: 2px;
 }
 
-/* App header (sidebar) styles*/
+/* header*/
 .app-header {
   position: fixed;
   top: 0;
@@ -1157,18 +1210,6 @@ body {
   font-weight: 700;
 }
 
-/* Logout button */
-.app-header__link--logout {
-  background-color: transparent;
-  color: var(--text-primary);
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.app-header__link--logout:hover {
-  color: var(--action-danger);
-}
-
 .app-header__icon {
   width: 26px;
   height: 26px;
@@ -1197,12 +1238,6 @@ body {
   background-color: var(--action-primary-hover);
 }
 
-.app-header__post-icon {
-  display: none;
-  width: 24px;
-  height: 24px;
-}
-
 .app-header__user {
   display: flex;
   align-items: center;
@@ -1218,7 +1253,6 @@ body {
   background-color: rgba(15, 23, 42, 0.1);
 }
 
-/* profile card content inside the sidebar */
 .app-header__user .user-card {
   width: 100%;
   min-width: 0;
@@ -1284,114 +1318,44 @@ body {
   white-space: nowrap;
 }
 
+/* Logout button */
 .app-header__logout {
-  flex-shrink: 0;
-  padding: 6px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 999px;
-  background-color: transparent;
+  width: fit-content;
+  padding: 12px 16px;
+  border: none;
+  background: none;
   color: var(--text-primary);
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
+  font-family: var(--font-family);
+  font-size: 20px;
+  font-weight: 700;
+  text-align: left;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: color 0.2s ease;
 }
 
 .app-header__logout:hover {
-  border-color: var(--button-danger-hover);
-  background-color: var(--button-danger-hover-border);
   color: var(--action-danger);
 }
 
-/* Medium screens: icon-only sidebar */
-@media (max-width: 1000px) {
+/* Desktop screens */
+@media (max-width: 1200px) {
   :root {
-    --sidebar-width: 88px;
-  }
-
-  .app-header {
-    align-items: center;
-  }
-
-  .app-header__link {
-    padding: 12px;
-  }
-
-  .app-header__label,
-  .app-header__user-info,
-  .app-header__post-label {
-    display: none;
-  }
-
-  .app-header__post {
-    width: 52px;
-    height: 52px;
-    padding: 0;
-  }
-
-  .app-header__post-icon {
-    display: block;
-  }
-
-  .app-header__user {
-    flex-direction: column;
-    gap: 8px;
-    padding: 8px;
+    --sidebar-width: 230px;
   }
 }
 
-/* Small screens: sidebar becomes a bottom bar */
-@media (max-width: 700px) {
+@media (max-width: 1000px) {
   :root {
-    --sidebar-width: 0px;
-    --bottom-bar-height: 64px;
+    --sidebar-width: 190px;
   }
 
-  .feed-container,
-  .profile-container,
-  .followers-container,
-  .new-tweet-container,
-  .tweet-detail-container,
-  .auth-container {
-    border-left: none;
-    border-right: none;
+  .app-header__link,
+  .app-header__logout {
+    padding: 10px 12px;
+    font-size: 18px;
   }
 
-  .app-header {
-    top: auto;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: var(--bottom-bar-height);
-    padding: 0 8px;
-    flex-direction: row;
-    justify-content: space-around;
-    border-top: 1px solid var(--border-color);
-    background-color: var(--bg-surface);
-  }
-
-  .app-layout > .app-header {
-    position: fixed;
-  } 
-
-  .app-layout {
-    display: block;
-  }
-
-  .app-content {
-    height: calc(100vh - var(--bottom-bar-height));
-  }
-
-  .app-header__logo,
-  .app-header__post,
-  .app-header__user {
-    display: none;
-  }
-
-  .app-header__nav {
-    flex-direction: row;
-    justify-content: space-around;
+  .app-header__post {
     width: 100%;
   }
 }
