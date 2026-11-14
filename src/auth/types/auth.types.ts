@@ -6,12 +6,6 @@ export interface SessionUser {
   username: string;
 }
 
-export interface UserCredentials {
-  uid: string;
-  email: string;
-  password: string;
-}
-
 export interface RegisterData {
   fullName: string;
   username: string;

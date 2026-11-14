@@ -1,4 +1,4 @@
-import { useCallback, useContext } from 'react';
+import { useContext } from 'react';
 import { useParams } from 'react-router-dom';
 
 import calendar from '../../assets/calendar.svg';
@@ -7,14 +7,16 @@ import { AuthContext } from '../../auth/contexts/AuthContext';
 import { usePagination } from '../../shared/hooks/usePagination';
 import { formatMonthYear } from '../../shared/utils/formatDate';
 import { TweetList } from '../../tweets/components/TweetList';
-import { useTweetList } from '../../tweets/hooks/useTweetList';
-import { getTweetsByUid } from '../../tweets/services/tweetService';
+import { useTweets } from '../../tweets/hooks/useTweets';
 import { PageHeader } from '../../ui/components/PageHeader';
 import { Pagination } from '../../ui/components/Pagination';
 import { FollowButton } from '../components/FollowButton';
 import { FollowCounters } from '../components/FollowCounters';
 import { UsersContext } from '../contexts/UsersContext';
 import { useUserProfile } from '../hooks/useUserProfile';
+
+import avatarIcon from '../../assets/avatar.svg';
+
 
 export const UserProfilePage = () => {
   const { username = '' } = useParams();
@@ -29,13 +31,8 @@ export const UserProfilePage = () => {
     isLoading,
   } = useUserProfile(username);
 
-  const profileUid = profileUser?.uid;
-  const loadProfileTweets = useCallback(
-    () => (profileUid ? getTweetsByUid(profileUid, myUid) : []),
-    [profileUid, myUid],
-  );
-  const { tweets, like, retweet } = useTweetList(loadProfileTweets, myUid);
-  const pagination = usePagination(tweets);
+  const { items, like, retweet } = useTweets('user', profileUser?.uid);
+  const pagination = usePagination(items);
 
   if (isLoading) {
     return (
@@ -62,7 +59,11 @@ export const UserProfilePage = () => {
       <PageHeader title={profileUser.fullName} backTo="/" />
       <header className="profile-header">
         <div>
-          <img src={profileUser.photoURL} alt={profileUser.fullName} />
+          {profileUser.photoURL ? (
+            <img src={profileUser.photoURL} alt={profileUser.fullName} referrerPolicy="no-referrer" />
+          ) : (
+            <img className="avatar-placeholder" src={avatarIcon} alt={profileUser.fullName} />
+          )}
           <h2>{profileUser.fullName}</h2>
           <p>@{profileUser.username}</p>
           <p>{profileUser.bio}</p>
@@ -96,13 +97,13 @@ export const UserProfilePage = () => {
       />
 
       <TweetList
-        tweets={pagination.items}
+        items={pagination.items}
         onLike={like}
         onRetweet={retweet}
         emptyMessage={`@${profileUser.username} hasn't tweeted yet.`}
       />
 
-      {tweets.length > 0 && (
+      {items.length > 0 && (
         <Pagination
           label="Tweets pagination"
           currentPage={pagination.currentPage}
